@@ -6,6 +6,7 @@ export class CreateUserDto {
   password?: string;
   isAdmin: boolean;
   telephone: string;
+  groupFamily: string;
   createdAt: Date;
   updatedAt: Date;
 }

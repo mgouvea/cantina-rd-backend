@@ -20,20 +20,25 @@ export class UsersService {
   }
 
   findAll() {
-    return this.userModel.find();
+    return this.userModel.find().populate('groupFamily').exec();
   }
 
-  findOne(id: number) {
-    return this.userModel.findById(id);
+  async findOne(id: string) {
+    const user = await this.userModel
+      .findById(id)
+      .populate('groupFamily')
+      .exec();
+
+    return user;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
+  update(id: string, updateUserDto: UpdateUserDto) {
     return this.userModel.findByIdAndUpdate(id, updateUserDto, {
       new: true,
     });
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return this.userModel.findByIdAndDelete(id);
   }
 }

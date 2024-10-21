@@ -32,7 +32,7 @@ export class UsersController {
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    const user = await this.usersService.findOne(+id);
+    const user = await this.usersService.findOne(id);
     if (!user) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
@@ -41,7 +41,7 @@ export class UsersController {
 
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    const user = await this.usersService.update(+id, updateUserDto);
+    const user = await this.usersService.update(id, updateUserDto);
     if (!user) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
@@ -50,7 +50,7 @@ export class UsersController {
 
   @Delete(':id')
   async remove(@Param('id') id: string) {
-    const user = await this.usersService.remove(+id);
+    const user = await this.usersService.remove(id);
     if (!user) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }

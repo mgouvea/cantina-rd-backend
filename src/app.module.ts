@@ -6,6 +6,7 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { ConfigModule } from '@nestjs/config';
+import { GroupFamilyModule } from './modules/group-family/group-family.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { ConfigModule } from '@nestjs/config';
     OrdersModule,
     CategoriesModule,
     PaymentsModule,
+    GroupFamilyModule,
   ],
   controllers: [],
   providers: [],

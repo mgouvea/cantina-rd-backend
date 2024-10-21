@@ -1,5 +1,6 @@
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { GroupFamily } from 'src/modules/group-family/entities/group-family.entity';
 
 export type UserDocument = User & Document;
 
@@ -19,6 +20,9 @@ export class User extends Document {
 
   @Prop({ required: true })
   telephone: string;
+
+  @Prop({ type: Types.ObjectId, ref: GroupFamily.name, required: true })
+  groupFamily: Types.ObjectId;
 
   @Prop({ required: true, default: Date.now })
   createdAt: Date;
