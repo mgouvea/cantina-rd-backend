@@ -8,6 +8,7 @@ import {
   Delete,
   HttpException,
   HttpStatus,
+  ValidationPipe,
 } from '@nestjs/common';
 import { GroupFamilyService } from './group-family.service';
 import {
@@ -39,6 +40,24 @@ export class GroupFamilyController {
     if (!groupFamily) {
       throw new HttpException('Group family not found', HttpStatus.NOT_FOUND);
     }
+    return groupFamily;
+  }
+
+  @Patch(':id')
+  async addMembers(
+    @Param('id') id: string,
+    @Body(ValidationPipe) updateGroupFamilyDto: UpdateGroupFamilyDto,
+  ) {
+    const { addMembers } = updateGroupFamilyDto;
+
+    const groupFamily = await this.groupFamilyService.findOne(id);
+    if (!groupFamily) {
+      throw new HttpException('Group family not found', HttpStatus.NOT_FOUND);
+    }
+
+    groupFamily.members = groupFamily.members.concat(addMembers || []);
+    await groupFamily.save();
+
     return groupFamily;
   }
 

@@ -18,7 +18,11 @@ export class GroupFamilyService {
   ) {}
 
   create(createGroupFamilyDto: CreateGroupFamilyDto) {
-    return this.groupFamilyModel.create(createGroupFamilyDto);
+    const createdAt = new Date();
+    return this.groupFamilyModel.create({
+      ...createGroupFamilyDto,
+      createdAt,
+    });
   }
 
   findAll() {
@@ -29,7 +33,7 @@ export class GroupFamilyService {
     return this.groupFamilyModel.findById(id);
   }
 
-  update(id: string, updateGroupFamilyDto: UpdateGroupFamilyDto) {
+  async update(id: string, updateGroupFamilyDto: UpdateGroupFamilyDto) {
     return this.groupFamilyModel.findByIdAndUpdate(id, updateGroupFamilyDto, {
       new: true,
     });

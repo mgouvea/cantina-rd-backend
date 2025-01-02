@@ -39,6 +39,11 @@ export class UsersController {
     return user;
   }
 
+  @Get('group-family/:id')
+  async findGroupFamily(@Param('id') id: string) {
+    return this.usersService.findGroupFamily(id);
+  }
+
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     const user = await this.usersService.update(id, updateUserDto);

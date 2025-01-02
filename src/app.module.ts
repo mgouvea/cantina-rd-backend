@@ -7,6 +7,8 @@ import { CategoriesModule } from './modules/categories/categories.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { ConfigModule } from '@nestjs/config';
 import { GroupFamilyModule } from './modules/group-family/group-family.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -25,6 +27,8 @@ import { GroupFamilyModule } from './modules/group-family/group-family.module';
     CategoriesModule,
     PaymentsModule,
     GroupFamilyModule,
+    AuthModule,
+    AdminModule,
   ],
   controllers: [],
   providers: [],

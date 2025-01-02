@@ -12,9 +12,6 @@ export class User extends Document {
   @Prop({ required: true })
   email: string;
 
-  @Prop({ required: false })
-  password?: string;
-
   @Prop({ required: true })
   isAdmin: boolean;
 
@@ -27,7 +24,7 @@ export class User extends Document {
   @Prop({ required: true, default: Date.now })
   createdAt: Date;
 
-  @Prop()
+  @Prop({ required: false })
   updatedAt: Date;
 }
 
