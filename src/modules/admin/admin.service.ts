@@ -14,6 +14,8 @@ export class AdminService {
   create(createAdminDto: CreateAdminDto) {
     return this.adminModel.create({
       ...createAdminDto,
+      name: createAdminDto.name.toLowerCase(),
+      email: createAdminDto.email.toLowerCase(),
       createdAt: new Date(),
     });
   }

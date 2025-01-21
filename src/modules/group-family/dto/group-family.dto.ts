@@ -1,8 +1,14 @@
 import { PartialType } from '@nestjs/mapped-types';
 
+interface members {
+  userId: string;
+  name: string;
+}
+
 export class CreateGroupFamilyDto {
   name: string;
-  members?: string[];
+  members?: members[];
+  owner?: string;
   createdAt: Date;
   updatedAt: Date;
 }
