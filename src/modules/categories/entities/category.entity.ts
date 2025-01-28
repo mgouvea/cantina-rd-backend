@@ -8,8 +8,6 @@ export class Category {
   @Prop({ required: true })
   name: string;
 
-  @Prop({ required: true })
-  description: string;
 
   @Prop({ required: true, default: Date.now })
   createdAt: Date;

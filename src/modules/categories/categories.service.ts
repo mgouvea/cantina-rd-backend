@@ -11,7 +11,11 @@ export class CategoriesService {
   ) {}
 
   create(createCategoryDto: CreateCategoryDto) {
-    return this.categoryModel.create(createCategoryDto);
+    const category = new this.categoryModel({
+      ...createCategoryDto,
+      createdAt: Date.now(),
+    });
+    return category.save();
   }
 
   findAll() {
