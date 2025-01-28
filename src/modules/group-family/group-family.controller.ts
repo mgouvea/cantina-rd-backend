@@ -34,13 +34,13 @@ export class GroupFamilyController {
     return this.groupFamilyService.findAll();
   }
 
-  @Get(':id')
+  @Get('name/:id')
   async findOne(@Param('id') id: string) {
     const groupFamily = await this.groupFamilyService.findOne(id);
     if (!groupFamily) {
       throw new HttpException('Group family not found', HttpStatus.NOT_FOUND);
     }
-    return groupFamily;
+    return groupFamily.name;
   }
 
   @Patch(':id')

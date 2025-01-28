@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { CreateProductDto, UpdateProductDto } from './dto/product.dto';
-import { InjectModel } from '@nestjs/mongoose';
 import { Product, ProductDocument } from './entities/product.entity';
+import { InjectModel } from '@nestjs/mongoose';
+import {  ProductDto, UpdateProductDto } from './dto/product.dto';
 import { Model } from 'mongoose';
 
 @Injectable()
@@ -10,21 +10,23 @@ export class ProductsService {
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
   ) {}
 
-  create(createProductDto: CreateProductDto) {
+  create(createProductDto: ProductDto) {
     return this.productModel.create(createProductDto);
   }
 
   async findAll() {
     return this.productModel
       .find()
-      .populate('categoryId') // Popula a categoria pelo campo categoryId
+      .populate('categoryId')
+      .populate('subcategoryId')
       .exec();
   }
 
   async findOne(id: string) {
     return this.productModel
       .findById(id)
-      .populate('categoryId') // Popula a categoria pelo campo categoryId
+      .populate('categoryId')
+      .populate('subcategoryId')
       .exec();
   }
 

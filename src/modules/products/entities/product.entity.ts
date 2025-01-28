@@ -18,8 +18,11 @@ export class Product {
   @Prop({ type: Types.ObjectId, ref: Category.name, required: true })
   categoryId: Types.ObjectId; // Isso será o ID da categoria referenciada
 
+  @Prop({ type: Types.ObjectId, ref: Category.name, required: true })
+  subcategoryId: Types.ObjectId; // Isso será o ID da categoria referenciada
+
   @Prop({ required: true })
-  stock: number;
+  quantity: number;
 
   @Prop({ required: true, default: Date.now })
   createdAt: Date;

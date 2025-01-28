@@ -5,12 +5,11 @@ export class ProductDto {
   description: string;
   price: number;
   category: string;
-}
-
-export class CreateProductDto extends ProductDto {
-  stock: number;
+  subcategory: string;
+  quantity: number;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export class UpdateProductDto extends PartialType(CreateProductDto) {}
+
+export class UpdateProductDto extends PartialType(ProductDto) {}
