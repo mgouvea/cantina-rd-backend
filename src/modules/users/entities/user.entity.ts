@@ -18,6 +18,9 @@ export class User extends Document {
   @Prop({ type: Types.ObjectId, ref: GroupFamily.name, required: true })
   groupFamily: Types.ObjectId;
 
+  @Prop({ required: true })
+  imageBase64: string;
+
   @Prop({ required: true, default: Date.now })
   createdAt: Date;
 

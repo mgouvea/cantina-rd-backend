@@ -45,15 +45,22 @@ export class UsersService {
       throw new HttpException('No group family users', HttpStatus.BAD_REQUEST);
     }
 
-     groupFamilyUsers.forEach(async (user) => {
+    groupFamilyUsers.forEach(async (user) => {
       if (!user.name || !user.userId) {
-        throw new HttpException('Invalid group family user', HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          'Invalid group family user',
+          HttpStatus.BAD_REQUEST,
+        );
       }
 
       await this.userModel.findByIdAndUpdate(user.userId, { groupFamily: id });
     });
 
-    return `${groupFamilyUsers.length > 1 ? 'Usuários atualizados' : 'Usuário atualizado' } com sucesso`;
+    return `${
+      groupFamilyUsers.length > 1
+        ? 'Usuários atualizados'
+        : 'Usuário atualizado'
+    } com sucesso`;
   }
 
   update(id: string, updateUserDto: UpdateUserDto) {

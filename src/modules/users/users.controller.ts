@@ -55,15 +55,19 @@ export class UsersController {
   }
 
   @Patch('group-family/:id')
-  async updateGroupFamily(@Param('id') id: string, @Body() groupFamilyUsers: GroupFamilyUser[]) {
-    const user = await this.usersService.updateGroupFamily(id, groupFamilyUsers);
+  async updateGroupFamily(
+    @Param('id') id: string,
+    @Body() groupFamilyUsers: GroupFamilyUser[],
+  ) {
+    const user = await this.usersService.updateGroupFamily(
+      id,
+      groupFamilyUsers,
+    );
     if (!user) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
     return user;
   }
-
-
 
   @Delete(':id')
   async remove(@Param('id') id: string) {

@@ -5,6 +5,7 @@ export class CreateUserDto {
   isAdmin: boolean;
   telephone: string;
   groupFamily: string;
+  imageBase64: string;
   createdAt: Date;
   updatedAt?: Date;
 }
