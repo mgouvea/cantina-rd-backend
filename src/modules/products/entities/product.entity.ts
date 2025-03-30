@@ -1,6 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { Category } from 'src/modules/categories/entities/category.entity';
+import { Subcategory } from 'src/modules/subcategories/entities/subcategory.entity';
+
 export type ProductDocument = Product & Document;
 
 @Schema()
@@ -18,11 +20,11 @@ export class Product {
   @Prop({ type: Types.ObjectId, ref: Category.name, required: true })
   categoryId: Types.ObjectId; // Isso será o ID da categoria referenciada
 
-  @Prop({ type: Types.ObjectId, ref: Category.name, required: true })
-  subcategoryId: Types.ObjectId; // Isso será o ID da categoria referenciada
+  @Prop({ type: Types.ObjectId, ref: Subcategory.name, required: true })
+  subcategoryId: Types.ObjectId; // Isso será o ID da subcategoria referenciada
 
   @Prop({ required: true })
-  quantity: number;
+  imageBase64: string;
 
   @Prop({ required: true, default: Date.now })
   createdAt: Date;

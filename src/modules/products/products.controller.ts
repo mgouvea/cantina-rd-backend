@@ -10,7 +10,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
-import {  ProductDto, UpdateProductDto } from './dto/product.dto';
+import { ProductDto, UpdateProductDto } from './dto/product.dto';
 
 @Controller('products')
 export class ProductsController {

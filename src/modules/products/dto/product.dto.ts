@@ -4,12 +4,11 @@ export class ProductDto {
   name: string;
   description: string;
   price: number;
-  category: string;
-  subcategory: string;
-  quantity: number;
+  categoryId: string;
+  subcategoryId: string;
+  imageBase64: string;
   createdAt: Date;
   updatedAt: Date;
 }
-
 
 export class UpdateProductDto extends PartialType(ProductDto) {}
