@@ -14,6 +14,9 @@ export class Product {
   description: string;
 
   @Prop({ required: true })
+  tag: string;
+
+  @Prop({ required: true })
   price: number;
 
   // Usamos Types.ObjectId para referenciar o ID da Categoria
@@ -26,10 +29,10 @@ export class Product {
   @Prop({ required: true })
   imageBase64: string;
 
-  @Prop({ required: true, default: Date.now })
+  @Prop({ required: false, default: Date.now })
   createdAt: Date;
 
-  @Prop()
+  @Prop({ required: false })
   updatedAt: Date;
 }
 

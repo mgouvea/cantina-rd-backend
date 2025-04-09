@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { SubcategoriesService } from './subcategories.service';
 import { SubcategoryDto, UpdateSubcategoryDto } from './dto/subcategory.dto';
 
@@ -18,16 +26,19 @@ export class SubcategoriesController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.subcategoriesService.findOne(+id);
+    return this.subcategoriesService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSubcategoryDto: UpdateSubcategoryDto) {
-    return this.subcategoriesService.update(+id, updateSubcategoryDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateSubcategoryDto: UpdateSubcategoryDto,
+  ) {
+    return this.subcategoriesService.update(id, updateSubcategoryDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.subcategoriesService.remove(+id);
+    return this.subcategoriesService.remove(id);
   }
 }
