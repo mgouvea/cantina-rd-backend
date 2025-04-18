@@ -39,15 +39,12 @@ export class CategoriesService {
   }
 
   async remove(id: string) {
-    // Primeiro, encontramos todas as subcategorias relacionadas a esta categoria
     const subcategories = await this.subcategoryModel.find({ categoryId: id });
 
-    // Excluímos cada subcategoria
     for (const subcategory of subcategories) {
       await this.subcategoriesService.remove(subcategory._id.toString());
     }
 
-    // Finalmente, excluímos a categoria
     return this.categoryModel.findByIdAndDelete(id);
   }
 }

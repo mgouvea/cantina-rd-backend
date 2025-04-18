@@ -11,6 +11,6 @@ import { Subcategory, SubcategorySchema } from './entities/subcategory.entity';
     ]),
   ],
   controllers: [SubcategoriesController],
-  providers: [SubcategoriesService]
+  providers: [SubcategoriesService],
 })
 export class SubcategoriesModule {}

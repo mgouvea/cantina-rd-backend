@@ -24,6 +24,11 @@ export class AdminController {
     return this.adminService.findAll();
   }
 
+  @Get(':id')
+  findByUserId(@Param('id') id: string) {
+    return this.adminService.findByUserId(id);
+  }
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateAdminDto: UpdateAdminDto) {
     return this.adminService.update(id, updateAdminDto);
@@ -32,5 +37,10 @@ export class AdminController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.adminService.remove(id);
+  }
+
+  @Delete('user/:id')
+  removeByUserId(@Param('id') id: string) {
+    return this.adminService.removeByUserId(id);
   }
 }

@@ -1,13 +1,26 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  forwardRef,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './entities/user.entity';
 import { Model } from 'mongoose';
 import { GroupFamilyUser } from 'src/shared/types/user.types';
+import { AdminService } from '../admin/admin.service';
+import { GroupFamilyService } from '../group-family/group-family.service';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private adminService: AdminService,
+    @Inject(forwardRef(() => GroupFamilyService))
+    private groupFamilyService: GroupFamilyService,
+  ) {}
 
   async create(createUserDto: CreateUserDto) {
     const user = new this.userModel({
@@ -69,7 +82,15 @@ export class UsersService {
     });
   }
 
-  remove(id: string) {
+  async remove(id: string) {
+    const admin = await this.adminService.findByUserId(id);
+
+    if (admin && admin.length > 0) {
+      await this.adminService.remove(admin[0]._id.toString());
+    }
+
+    await this.groupFamilyService.removeMembersFromGroupFamily(id);
+
     return this.userModel.findByIdAndDelete(id);
   }
 }

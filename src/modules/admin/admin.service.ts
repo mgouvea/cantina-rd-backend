@@ -24,13 +24,21 @@ export class AdminService {
     return this.adminModel.find();
   }
 
+  async findByUserId(id: string) {
+    return this.adminModel.find({ idUser: id });
+  }
+
   update(id: string, updateAdminDto: UpdateAdminDto) {
     return this.adminModel.findByIdAndUpdate(id, updateAdminDto, {
       new: true,
     });
   }
 
-  remove(id: string) {
+  async remove(id: string) {
     return this.adminModel.findByIdAndDelete(id);
+  }
+
+  async removeByUserId(id: string) {
+    return this.adminModel.findOneAndDelete({ idUser: id });
   }
 }

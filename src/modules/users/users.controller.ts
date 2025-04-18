@@ -54,6 +54,7 @@ export class UsersController {
     return user;
   }
 
+  // Atualiza o usuario dizendo que ele faz parte de uma familia
   @Patch('group-family/:id')
   async updateGroupFamily(
     @Param('id') id: string,

@@ -6,7 +6,6 @@ export class CreateAdminDto {
   email: string;
   password: string;
   createdAt: Date;
-  updatedAt?: Date;
 }
 
 export class UpdateAdminDto extends PartialType(CreateAdminDto) {}

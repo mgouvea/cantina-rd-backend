@@ -12,7 +12,7 @@ export class User extends Document {
   @Prop({ required: true })
   isAdmin: boolean;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   telephone: string;
 
   @Prop({ type: Types.ObjectId, ref: GroupFamily.name, required: true })
@@ -20,6 +20,9 @@ export class User extends Document {
 
   @Prop({ required: true })
   imageBase64: string;
+
+  @Prop({ required: false })
+  isChild: boolean;
 
   @Prop({ required: true, default: Date.now })
   createdAt: Date;
