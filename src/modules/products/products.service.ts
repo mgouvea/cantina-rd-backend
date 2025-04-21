@@ -36,6 +36,20 @@ export class ProductsService {
     return product;
   }
 
+  async findByCategory(categoryId: string) {
+    const product = await this.productModel
+      .find({ categoryId: categoryId })
+      .populate('categoryId')
+      .populate('subcategoryId')
+      .exec();
+
+    if (!product) {
+      throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
+    }
+
+    return product;
+  }
+
   // Atualizar um produto
   async update(id: string, updateProductDto: UpdateProductDto) {
     const updatedProduct = await this.productModel

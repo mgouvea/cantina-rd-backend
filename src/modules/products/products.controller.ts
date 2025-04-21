@@ -39,6 +39,15 @@ export class ProductsController {
     return product;
   }
 
+  @Get('category/:categoryId')
+  async findByCategory(@Param('categoryId') categoryId: string) {
+    const product = await this.productsService.findByCategory(categoryId);
+    if (!product) {
+      throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
+    }
+    return product;
+  }
+
   @Patch(':id')
   async update(
     @Param('id') id: string,
