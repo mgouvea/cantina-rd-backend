@@ -15,7 +15,7 @@ export class OrdersService {
     const createdAt = new Date();
 
     return this.orderModel.create({
-      ...CreateOrderDto,
+      ...createOrderDto,
       createdAt,
     });
   }

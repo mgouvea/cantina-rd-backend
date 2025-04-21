@@ -1,13 +1,19 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { ProductDto } from 'src/modules/products/dto/product.dto';
+
+export interface ProductItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+}
 
 export class CreateOrderDto {
-  buyerName: string;
-  groupFamily: string;
-  products: ProductDto[];
-  finalPrice: number;
+  buyerId: string;
+  groupFamilyId: string;
+  products: ProductItem[];
+  totalPrice: number;
   createdAt: Date;
-  updatedAt: Date;
+  updatedAt?: Date;
 }
 
 export class UpdateOrderDto extends PartialType(CreateOrderDto) {}

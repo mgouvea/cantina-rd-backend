@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { IsArray, IsNumber, IsString } from 'class-validator';
 import { Document } from 'mongoose';
-import { ProductDto } from 'src/modules/products/dto/product.dto';
+import { ProductItem } from '../dto/create-order.dto';
 
 export type OrderDocument = Order & Document;
 
@@ -9,24 +9,24 @@ export type OrderDocument = Order & Document;
 export class Order {
   @Prop({ isRequired: true })
   @IsString()
-  buyerName: string;
+  buyerId: string;
 
   @Prop({ isRequired: true })
   @IsString()
-  groupFamily: string;
+  groupFamilyId: string;
 
   @Prop({ isRequired: true })
   @IsArray()
-  products: ProductDto[];
+  products: ProductItem[];
 
   @Prop({ isRequired: true })
   @IsNumber()
-  finalPrice: number;
+  totalPrice: number;
 
-  @Prop({})
+  @Prop({ isRequired: true })
   createdAt: Date;
 
-  @Prop({})
+  @Prop({ isRequired: false })
   updatedAt: Date;
 }
 

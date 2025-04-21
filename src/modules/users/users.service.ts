@@ -31,8 +31,8 @@ export class UsersService {
     return user.save();
   }
 
-  findAll() {
-    const users = this.userModel.find().exec();
+  async findAll() {
+    const users = await this.userModel.find().exec();
     return users;
   }
 
