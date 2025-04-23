@@ -45,6 +45,14 @@ export class UsersService {
     return user;
   }
 
+  async findUserNameAndPhoneById(userId: string) {
+    const user = await this.userModel
+      .findById(userId)
+      .select('name telephone')
+      .exec();
+    return user;
+  }
+
   async findGroupFamily(id: string) {
     const user = await this.userModel
       .findById(id)
