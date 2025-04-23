@@ -13,7 +13,7 @@ export class CreateOrderDto {
   products: ProductItem[];
   totalPrice: number;
   createdAt: Date;
-  updatedAt?: Date;
+  invoiceId?: string; // fatura a que pertence
 }
 
 export class UpdateOrderDto extends PartialType(CreateOrderDto) {}

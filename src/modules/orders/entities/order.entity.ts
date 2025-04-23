@@ -27,7 +27,7 @@ export class Order {
   createdAt: Date;
 
   @Prop({ isRequired: false })
-  updatedAt: Date;
+  invoiceId?: string; // fatura a que pertence
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);
