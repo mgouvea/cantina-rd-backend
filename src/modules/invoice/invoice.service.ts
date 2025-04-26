@@ -2,7 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Invoice, InvoiceDocument } from './entities/invoice.entity';
-import { CreateInvoiceDto, UserStatement } from './dto/create-invoice.dto';
+import {
+  CreateInvoiceDto,
+  FullInvoiceResponse,
+  UserStatement,
+} from './dto/create-invoice.dto';
 import { Order, OrderDocument } from '../orders/entities/order.entity';
 import { Payment, PaymentDocument } from '../payments/entities/payment.entity';
 
@@ -20,17 +24,9 @@ export class InvoicesService {
   ) {}
 
   async create(createInvoiceDto: CreateInvoiceDto) {
-    const { buyerId, groupFamilyId, startDate, endDate } = createInvoiceDto;
+    const { groupFamilyId, startDate, endDate } = createInvoiceDto;
 
-    // 1. Verifica se já existe fatura em aberto
-    const openInvoice = await this.invoiceModel.findOne({
-      buyerId,
-      status: { $in: ['OPEN', 'PARTIALLY_PAID'] },
-    });
-
-    // 2. Busca pedidos sem invoice dentro do período
     const orders = await this.orderModel.find({
-      buyerId,
       groupFamilyId,
       invoiceId: { $exists: false },
       createdAt: { $gte: startDate, $lte: endDate },
@@ -40,15 +36,30 @@ export class InvoicesService {
       throw new Error('Nenhum novo pedido encontrado no período informado.');
     }
 
-    const totalAmount = orders.reduce(
-      (sum, order) => sum + order.totalPrice,
-      0,
-    );
+    const buyerIds = [...new Set(orders.map((o) => o.buyerId))];
+    const totalAmount = orders.reduce((sum, o) => sum + o.totalPrice, 0);
+
+    const consumoPorPessoa: Record<string, any[]> = {};
+    for (const order of orders) {
+      const buyer = order.buyerId;
+      if (!consumoPorPessoa[buyer]) {
+        consumoPorPessoa[buyer] = [];
+      }
+      consumoPorPessoa[buyer].push({
+        date: order.createdAt,
+        products: order.products,
+      });
+    }
+
+    const openInvoice = await this.invoiceModel.findOne({
+      groupFamilyId,
+      status: { $in: ['OPEN', 'PARTIALLY_PAID'] },
+    });
 
     if (openInvoice) {
-      // Atualiza fatura existente
       await this.invoiceModel.findByIdAndUpdate(openInvoice._id, {
         $inc: { totalAmount },
+        $addToSet: { buyerIds: { $each: buyerIds } },
       });
 
       await Promise.all(
@@ -60,30 +71,37 @@ export class InvoicesService {
         ),
       );
 
-      return { updated: true, invoice: openInvoice };
-    } else {
-      // Cria nova fatura
-      const newInvoice = await this.invoiceModel.create({
-        buyerId,
-        groupFamilyId,
-        startDate,
-        endDate,
-        totalAmount,
-        status: 'OPEN',
-        createdAt: new Date(),
-      });
-
-      await Promise.all(
-        orders.map((order) =>
-          this.orderModel.updateOne(
-            { _id: order._id },
-            { invoiceId: newInvoice._id },
-          ),
-        ),
-      );
-
-      return { created: true, invoice: newInvoice };
+      return {
+        updated: true,
+        invoice: openInvoice,
+        consumoPorPessoa,
+      };
     }
+
+    const newInvoice = await this.invoiceModel.create({
+      groupFamilyId,
+      buyerIds,
+      startDate,
+      endDate,
+      totalAmount,
+      status: 'OPEN',
+      createdAt: new Date(),
+    });
+
+    await Promise.all(
+      orders.map((order) =>
+        this.orderModel.updateOne(
+          { _id: order._id },
+          { invoiceId: newInvoice._id },
+        ),
+      ),
+    );
+
+    return {
+      created: true,
+      invoice: newInvoice,
+      consumoPorPessoa,
+    };
   }
 
   async findAll() {
@@ -143,6 +161,7 @@ export class InvoicesService {
 
       return {
         ...invoice,
+        buyerId,
         orders: invOrders,
         paidAmount,
         remaining: invoice.totalAmount - paidAmount,
@@ -165,6 +184,64 @@ export class InvoicesService {
         credit: totalCredit,
         availableBalance,
       },
+    };
+  }
+
+  async getFullInvoice(invoiceId: string): Promise<FullInvoiceResponse> {
+    const invoice = await this.invoiceModel.findById(invoiceId).lean();
+    if (!invoice) throw new Error('Fatura não encontrada');
+
+    const ordersRaw = await this.orderModel.find({ invoiceId }).lean();
+    const paymentsRaw = await this.paymentModel.find({ invoiceId }).lean();
+
+    // Mapeia _id para string nos orders
+    const orders = ordersRaw.map((order) => ({
+      _id: order._id.toString(),
+      buyerId: order.buyerId,
+      groupFamilyId: order.groupFamilyId,
+      products: order.products,
+      totalPrice: order.totalPrice,
+      createdAt: order.createdAt,
+    }));
+
+    // Mapeia _id para string nos payments
+    const payments = paymentsRaw.map((payment) => ({
+      _id: payment._id.toString(),
+      amountPaid: payment.amountPaid,
+      isPartial: payment.isPartial,
+      isCredit: payment.isCredit,
+      paymentDate: payment.paymentDate,
+      createdAt: payment.createdAt,
+    }));
+
+    const consumoPorPessoa: Record<string, any[]> = {};
+    for (const order of ordersRaw) {
+      const buyer = order.buyerId;
+      if (!consumoPorPessoa[buyer]) {
+        consumoPorPessoa[buyer] = [];
+      }
+      consumoPorPessoa[buyer].push({
+        date: order.createdAt,
+        products: order.products,
+      });
+    }
+
+    const totalPaid = payments.reduce((sum, p) => sum + p.amountPaid, 0);
+    const remaining = invoice.totalAmount - totalPaid;
+
+    return {
+      _id: invoice._id.toString(),
+      groupFamilyId: invoice.groupFamilyId,
+      buyerIds: invoice.buyerIds,
+      startDate: invoice.startDate,
+      endDate: invoice.endDate,
+      totalAmount: invoice.totalAmount,
+      status: invoice.status,
+      createdAt: invoice.createdAt,
+      orders,
+      payments,
+      consumoPorPessoa,
+      remaining,
     };
   }
 }

@@ -30,4 +30,9 @@ export class InvoicesController {
   getUserStatement(@Param('buyerId') buyerId: string) {
     return this.invoicesService.getUserStatement(buyerId);
   }
+
+  @Get(':id/full')
+  getFullInvoice(@Param('id') id: string) {
+    return this.invoicesService.getFullInvoice(id);
+  }
 }
