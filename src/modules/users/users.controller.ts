@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
+import { GroupFamilyUser } from 'src/shared/types/user.types';
 
 @Controller('users')
 export class UsersController {
@@ -47,6 +48,22 @@ export class UsersController {
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     const user = await this.usersService.update(id, updateUserDto);
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+    return user;
+  }
+
+  // Atualiza o usuario dizendo que ele faz parte de uma familia
+  @Patch('group-family/:id')
+  async updateGroupFamily(
+    @Param('id') id: string,
+    @Body() groupFamilyUsers: GroupFamilyUser[],
+  ) {
+    const user = await this.usersService.updateGroupFamily(
+      id,
+      groupFamilyUsers,
+    );
     if (!user) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }

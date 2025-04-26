@@ -3,14 +3,13 @@ import { PartialType } from '@nestjs/mapped-types';
 export class ProductDto {
   name: string;
   description: string;
+  tag: string;
   price: number;
-  category: string;
+  categoryId: string;
+  subcategoryId: string;
+  imageBase64: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
-export class CreateProductDto extends ProductDto {
-  stock: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export class UpdateProductDto extends PartialType(CreateProductDto) {}
+export class UpdateProductDto extends PartialType(ProductDto) {}

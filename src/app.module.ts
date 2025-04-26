@@ -9,6 +9,9 @@ import { ConfigModule } from '@nestjs/config';
 import { GroupFamilyModule } from './modules/group-family/group-family.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { SubcategoriesModule } from './modules/subcategories/subcategories.module';
+import { InvoiceModule } from './modules/invoice/invoice.module';
+import { WhatsAppModule } from './modules/whatsapp/whatsapp.module';
 
 @Module({
   imports: [
@@ -29,6 +32,9 @@ import { AdminModule } from './modules/admin/admin.module';
     GroupFamilyModule,
     AuthModule,
     AdminModule,
+    SubcategoriesModule,
+    InvoiceModule,
+    WhatsAppModule,
   ],
   controllers: [],
   providers: [],

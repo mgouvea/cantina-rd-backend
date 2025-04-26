@@ -1,20 +1,20 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
   HttpException,
   HttpStatus,
-  ValidationPipe,
+  Param,
+  Patch,
+  Post,
 } from '@nestjs/common';
 import { GroupFamilyService } from './group-family.service';
 import {
   CreateGroupFamilyDto,
   UpdateGroupFamilyDto,
 } from './dto/group-family.dto';
+import { MemberDto } from './dto/add-member.dto';
 
 @Controller('group-family')
 export class GroupFamilyController {
@@ -34,31 +34,31 @@ export class GroupFamilyController {
     return this.groupFamilyService.findAll();
   }
 
-  @Get(':id')
+  @Get('name/:id')
   async findOne(@Param('id') id: string) {
     const groupFamily = await this.groupFamilyService.findOne(id);
     if (!groupFamily) {
       throw new HttpException('Group family not found', HttpStatus.NOT_FOUND);
     }
-    return groupFamily;
+    return groupFamily.name;
   }
 
-  @Patch(':id')
-  async addMembers(
+  @Patch('add-or-remove-member/:id')
+  async updateMembers(
     @Param('id') id: string,
-    @Body(ValidationPipe) updateGroupFamilyDto: UpdateGroupFamilyDto,
+    @Body() addMemberDto: MemberDto[],
   ) {
-    const { addMembers } = updateGroupFamilyDto;
+    const updatedGroupFamily =
+      await this.groupFamilyService.addOrRemoveMembersToGroupFamily(
+        id,
+        addMemberDto,
+      );
 
-    const groupFamily = await this.groupFamilyService.findOne(id);
-    if (!groupFamily) {
+    if (!updatedGroupFamily) {
       throw new HttpException('Group family not found', HttpStatus.NOT_FOUND);
     }
 
-    groupFamily.members = groupFamily.members.concat(addMembers || []);
-    await groupFamily.save();
-
-    return groupFamily;
+    return updatedGroupFamily;
   }
 
   @Patch(':id')
@@ -74,6 +74,29 @@ export class GroupFamilyController {
       throw new HttpException('Group family not found', HttpStatus.NOT_FOUND);
     }
     return groupFamily;
+  }
+
+  @Patch('remove-member')
+  async removeMember(@Body() body: { id: string | string[] }): Promise<{
+    message: string;
+    updatedGroupFamilies: any[];
+  }> {
+    const memberIds = Array.isArray(body.id) ? body.id : [body.id];
+
+    const updatedGroupFamilies =
+      await this.groupFamilyService.removeMembersFromGroupFamily(memberIds);
+
+    if (updatedGroupFamilies.length === 0) {
+      throw new HttpException(
+        'Member(s) not found in any group family',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return {
+      message: `Member(s) removed successfully from ${updatedGroupFamilies.length} group families`,
+      updatedGroupFamilies,
+    };
   }
 
   @Delete(':id')

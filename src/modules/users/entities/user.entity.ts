@@ -10,16 +10,19 @@ export class User extends Document {
   name: string;
 
   @Prop({ required: true })
-  email: string;
-
-  @Prop({ required: true })
   isAdmin: boolean;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   telephone: string;
 
   @Prop({ type: Types.ObjectId, ref: GroupFamily.name, required: true })
   groupFamily: Types.ObjectId;
+
+  @Prop({ required: true })
+  imageBase64: string;
+
+  @Prop({ required: false })
+  isChild: boolean;
 
   @Prop({ required: true, default: Date.now })
   createdAt: Date;

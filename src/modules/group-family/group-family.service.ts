@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import {
@@ -9,12 +9,16 @@ import {
   GroupFamily,
   GroupFamilyDocument,
 } from './entities/group-family.entity';
+import { UsersService } from '../users/users.service';
+import { MemberDto } from './dto/add-member.dto';
 
 @Injectable()
 export class GroupFamilyService {
   constructor(
     @InjectModel(GroupFamily.name)
-    private groupFamilyModel: Model<GroupFamilyDocument>,
+    private readonly groupFamilyModel: Model<GroupFamilyDocument>,
+    @Inject(forwardRef(() => UsersService))
+    private readonly usersService: UsersService,
   ) {}
 
   create(createGroupFamilyDto: CreateGroupFamilyDto) {
@@ -39,7 +43,60 @@ export class GroupFamilyService {
     });
   }
 
-  remove(id: string) {
+  async addOrRemoveMembersToGroupFamily(
+    groupFamilyId: string,
+    members: MemberDto[],
+  ) {
+    const groupFamily = await this.groupFamilyModel.findById(groupFamilyId);
+    if (!groupFamily) {
+      return null;
+    }
+
+    return this.groupFamilyModel.findByIdAndUpdate(
+      groupFamilyId,
+      { members },
+      { new: true },
+    );
+  }
+
+  async removeMembersFromGroupFamily(idMembers: string | string[]) {
+    const memberIds = Array.isArray(idMembers) ? idMembers : [idMembers];
+    const groupFamilies = await this.groupFamilyModel.find({
+      members: { $in: memberIds },
+    });
+
+    const updatePromises = groupFamilies.map((groupFamily) => {
+      return this.groupFamilyModel.findByIdAndUpdate(
+        groupFamily._id,
+        { $pull: { members: { $in: memberIds } } },
+        { new: true },
+      );
+    });
+
+    return Promise.all(updatePromises);
+  }
+
+  async remove(id: string) {
+    await this.updateUsersGroupFamily(id, null);
     return this.groupFamilyModel.findByIdAndDelete(id);
+  }
+
+  async updateUsersGroupFamily(
+    groupFamilyId: string,
+    newGroupFamilyId: string | null,
+  ) {
+    const users = await this.usersService.findAll();
+    const usersInGroup = users.filter(
+      (user) =>
+        user.groupFamily && user.groupFamily.toString() === groupFamilyId,
+    );
+
+    const updatePromises = usersInGroup.map((user) => {
+      return this.usersService.update(user._id.toString(), {
+        groupFamily: newGroupFamilyId,
+      });
+    });
+
+    return Promise.all(updatePromises);
   }
 }

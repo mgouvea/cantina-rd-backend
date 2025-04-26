@@ -2,10 +2,11 @@ import { PartialType } from '@nestjs/mapped-types';
 
 export class CreateUserDto {
   name: string;
-  email: string;
   isAdmin: boolean;
-  telephone: string;
+  telephone?: string;
   groupFamily: string;
+  imageBase64: string;
+  isChild?: boolean;
   createdAt: Date;
   updatedAt?: Date;
 }

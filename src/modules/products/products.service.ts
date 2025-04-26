@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
-import { CreateProductDto, UpdateProductDto } from './dto/product.dto';
-import { InjectModel } from '@nestjs/mongoose';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Product, ProductDocument } from './entities/product.entity';
+import { InjectModel } from '@nestjs/mongoose';
+import { ProductDto, UpdateProductDto } from './dto/product.dto';
 import { Model } from 'mongoose';
 
 @Injectable()
@@ -10,29 +10,61 @@ export class ProductsService {
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
   ) {}
 
-  create(createProductDto: CreateProductDto) {
+  create(createProductDto: ProductDto) {
     return this.productModel.create(createProductDto);
   }
 
   async findAll() {
-    return this.productModel
+    return await this.productModel
       .find()
-      .populate('categoryId') // Popula a categoria pelo campo categoryId
+      .populate('categoryId')
+      .populate('subcategoryId')
       .exec();
   }
 
   async findOne(id: string) {
-    return this.productModel
+    const product = await this.productModel
       .findById(id)
-      .populate('categoryId') // Popula a categoria pelo campo categoryId
+      .populate('categoryId')
+      .populate('subcategoryId')
       .exec();
+
+    if (!product) {
+      throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
+    }
+
+    return product;
+  }
+
+  async findByCategory(categoryId: string) {
+    const product = await this.productModel
+      .find({ categoryId: categoryId })
+      .populate('categoryId')
+      .populate('subcategoryId')
+      .exec();
+
+    if (!product) {
+      throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
+    }
+
+    return product;
   }
 
   // Atualizar um produto
-  update(id: string, updateProductDto: UpdateProductDto) {
-    return this.productModel.findByIdAndUpdate(id, updateProductDto, {
-      new: true,
-    });
+  async update(id: string, updateProductDto: UpdateProductDto) {
+    const updatedProduct = await this.productModel
+      .findByIdAndUpdate(id, updateProductDto, {
+        new: true,
+      })
+      .populate('categoryId')
+      .populate('subcategoryId')
+      .exec();
+
+    if (!updatedProduct) {
+      throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
+    }
+
+    return updatedProduct;
   }
 
   remove(id: string) {

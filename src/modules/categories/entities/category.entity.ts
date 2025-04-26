@@ -9,7 +9,7 @@ export class Category {
   name: string;
 
   @Prop({ required: true })
-  description: string;
+  imageBase64: string;
 
   @Prop({ required: true, default: Date.now })
   createdAt: Date;

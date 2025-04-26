@@ -10,6 +10,10 @@ export class GroupFamily {
   @IsString()
   name: string;
 
+  @Prop({ required: true })
+  @IsString()
+  owner: string;
+
   @Prop({ isRequired: false })
   @IsArray()
   members: string[];
