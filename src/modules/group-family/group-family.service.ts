@@ -33,8 +33,22 @@ export class GroupFamilyService {
     return this.groupFamilyModel.find();
   }
 
-  findOne(id: string) {
+  async findOne(id: string) {
     return this.groupFamilyModel.findById(id);
+  }
+
+  async findAllWithOwnerName() {
+    const groupFamilies = await this.groupFamilyModel.find();
+    const users = await this.usersService.findAll();
+    return groupFamilies.map((groupFamily) => ({
+      _id: groupFamily._id,
+      name: groupFamily.name,
+      ownerName: users.find((user) => user._id.toString() === groupFamily.owner)
+        ?.name,
+      ownerAvatar: users.find(
+        (user) => user._id.toString() === groupFamily.owner,
+      )?.imageBase64,
+    }));
   }
 
   async update(id: string, updateGroupFamilyDto: UpdateGroupFamilyDto) {

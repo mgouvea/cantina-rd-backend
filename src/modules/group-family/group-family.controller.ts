@@ -43,6 +43,15 @@ export class GroupFamilyController {
     return groupFamily.name;
   }
 
+  @Get('owner')
+  async findAllWithOwnerName() {
+    try {
+      return await this.groupFamilyService.findAllWithOwnerName();
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+
   @Patch('add-or-remove-member/:id')
   async updateMembers(
     @Param('id') id: string,
