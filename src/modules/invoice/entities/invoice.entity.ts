@@ -1,9 +1,10 @@
-import { Prop, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { IsArray, IsDate, IsEnum, IsNumber, IsString } from 'class-validator';
 import { Document } from 'mongoose';
 
 export type InvoiceDocument = Invoice & Document;
 
+@Schema()
 export class Invoice {
   @Prop({ isRequired: true, type: [String] })
   @IsArray()

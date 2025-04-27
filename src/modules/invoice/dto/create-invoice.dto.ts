@@ -6,6 +6,33 @@ export class CreateInvoiceDto {
   endDate: Date;
 }
 
+export class FetchMultipleInvoicesDto {
+  ids: string[];
+}
+
+export interface ProductItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+}
+export interface ConsumoItem {
+  date: Date;
+  products: ProductItem[];
+}
+
+export type InvoiceCreateResponse =
+  | {
+      created: true;
+      invoice: FullInvoiceResponse;
+      consumoPorPessoa: Record<string, ConsumoItem[]>;
+    }
+  | {
+      updated: true;
+      invoice: FullInvoiceResponse;
+      consumoPorPessoa: Record<string, ConsumoItem[]>;
+    };
+
 export interface InvoiceWithOrders {
   _id: any;
   buyerId: string;

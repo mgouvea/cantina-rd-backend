@@ -3,8 +3,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Invoice, InvoiceDocument } from './entities/invoice.entity';
 import {
+  ConsumoItem,
   CreateInvoiceDto,
   FullInvoiceResponse,
+  InvoiceCreateResponse,
   UserStatement,
 } from './dto/create-invoice.dto';
 import { Order, OrderDocument } from '../orders/entities/order.entity';
@@ -23,7 +25,9 @@ export class InvoicesService {
     private paymentModel: Model<PaymentDocument>,
   ) {}
 
-  async create(createInvoiceDto: CreateInvoiceDto) {
+  async create(
+    createInvoiceDto: CreateInvoiceDto,
+  ): Promise<InvoiceCreateResponse> {
     const { groupFamilyId, startDate, endDate } = createInvoiceDto;
 
     const orders = await this.orderModel.find({
@@ -39,7 +43,7 @@ export class InvoicesService {
     const buyerIds = [...new Set(orders.map((o) => o.buyerId))];
     const totalAmount = orders.reduce((sum, o) => sum + o.totalPrice, 0);
 
-    const consumoPorPessoa: Record<string, any[]> = {};
+    const consumoPorPessoa: Record<string, ConsumoItem[]> = {};
     for (const order of orders) {
       const buyer = order.buyerId;
       if (!consumoPorPessoa[buyer]) {
@@ -71,14 +75,31 @@ export class InvoicesService {
         ),
       );
 
+      const updatedInvoice = await this.invoiceModel
+        .findById(openInvoice._id)
+        .lean();
+
       return {
         updated: true,
-        invoice: openInvoice,
+        invoice: {
+          _id: updatedInvoice._id.toString(),
+          groupFamilyId: updatedInvoice.groupFamilyId,
+          buyerIds: updatedInvoice.buyerIds,
+          startDate: updatedInvoice.startDate,
+          endDate: updatedInvoice.endDate,
+          totalAmount: updatedInvoice.totalAmount,
+          status: updatedInvoice.status,
+          createdAt: updatedInvoice.createdAt,
+          orders: [],
+          payments: [],
+          consumoPorPessoa,
+          remaining: updatedInvoice.totalAmount,
+        },
         consumoPorPessoa,
       };
     }
 
-    const newInvoice = await this.invoiceModel.create({
+    const createdInvoice = await this.invoiceModel.create({
       groupFamilyId,
       buyerIds,
       startDate,
@@ -88,18 +109,35 @@ export class InvoicesService {
       createdAt: new Date(),
     });
 
+    const newInvoice = await this.invoiceModel
+      .findById(createdInvoice._id)
+      .lean();
+
     await Promise.all(
       orders.map((order) =>
         this.orderModel.updateOne(
           { _id: order._id },
-          { invoiceId: newInvoice._id },
+          { invoiceId: createdInvoice._id },
         ),
       ),
     );
 
     return {
       created: true,
-      invoice: newInvoice,
+      invoice: {
+        _id: newInvoice._id.toString(),
+        groupFamilyId: newInvoice.groupFamilyId,
+        buyerIds: newInvoice.buyerIds,
+        startDate: newInvoice.startDate,
+        endDate: newInvoice.endDate,
+        totalAmount: newInvoice.totalAmount,
+        status: newInvoice.status,
+        createdAt: newInvoice.createdAt,
+        orders: [],
+        payments: [],
+        consumoPorPessoa,
+        remaining: newInvoice.totalAmount,
+      },
       consumoPorPessoa,
     };
   }
@@ -187,61 +225,76 @@ export class InvoicesService {
     };
   }
 
-  async getFullInvoice(invoiceId: string): Promise<FullInvoiceResponse> {
-    const invoice = await this.invoiceModel.findById(invoiceId).lean();
-    if (!invoice) throw new Error('Fatura não encontrada');
+  async getFullInvoices(invoiceIds: string[]): Promise<FullInvoiceResponse[]> {
+    const invoicesRaw = await this.invoiceModel
+      .find({
+        _id: { $in: invoiceIds },
+      })
+      .lean();
 
-    const ordersRaw = await this.orderModel.find({ invoiceId }).lean();
-    const paymentsRaw = await this.paymentModel.find({ invoiceId }).lean();
+    if (invoicesRaw.length === 0) {
+      throw new Error('Nenhuma fatura encontrada.');
+    }
 
-    // Mapeia _id para string nos orders
-    const orders = ordersRaw.map((order) => ({
-      _id: order._id.toString(),
-      buyerId: order.buyerId,
-      groupFamilyId: order.groupFamilyId,
-      products: order.products,
-      totalPrice: order.totalPrice,
-      createdAt: order.createdAt,
-    }));
+    const results: FullInvoiceResponse[] = [];
 
-    // Mapeia _id para string nos payments
-    const payments = paymentsRaw.map((payment) => ({
-      _id: payment._id.toString(),
-      amountPaid: payment.amountPaid,
-      isPartial: payment.isPartial,
-      isCredit: payment.isCredit,
-      paymentDate: payment.paymentDate,
-      createdAt: payment.createdAt,
-    }));
+    for (const invoice of invoicesRaw) {
+      const ordersRaw = await this.orderModel
+        .find({ invoiceId: invoice._id })
+        .lean();
+      const paymentsRaw = await this.paymentModel
+        .find({ invoiceId: invoice._id })
+        .lean();
 
-    const consumoPorPessoa: Record<string, any[]> = {};
-    for (const order of ordersRaw) {
-      const buyer = order.buyerId;
-      if (!consumoPorPessoa[buyer]) {
-        consumoPorPessoa[buyer] = [];
-      }
-      consumoPorPessoa[buyer].push({
-        date: order.createdAt,
+      const orders = ordersRaw.map((order) => ({
+        _id: order._id.toString(),
+        buyerId: order.buyerId,
+        groupFamilyId: order.groupFamilyId,
         products: order.products,
+        totalPrice: order.totalPrice,
+        createdAt: order.createdAt,
+      }));
+
+      const payments = paymentsRaw.map((payment) => ({
+        _id: payment._id.toString(),
+        amountPaid: payment.amountPaid,
+        isPartial: payment.isPartial,
+        isCredit: payment.isCredit,
+        paymentDate: payment.paymentDate,
+        createdAt: payment.createdAt,
+      }));
+
+      const consumoPorPessoa: Record<string, any[]> = {};
+      for (const order of ordersRaw) {
+        const buyer = order.buyerId;
+        if (!consumoPorPessoa[buyer]) {
+          consumoPorPessoa[buyer] = [];
+        }
+        consumoPorPessoa[buyer].push({
+          date: order.createdAt,
+          products: order.products,
+        });
+      }
+
+      const totalPaid = payments.reduce((sum, p) => sum + p.amountPaid, 0);
+      const remaining = invoice.totalAmount - totalPaid;
+
+      results.push({
+        _id: invoice._id.toString(),
+        groupFamilyId: invoice.groupFamilyId,
+        buyerIds: invoice.buyerIds,
+        startDate: invoice.startDate,
+        endDate: invoice.endDate,
+        totalAmount: invoice.totalAmount,
+        status: invoice.status,
+        createdAt: invoice.createdAt,
+        orders,
+        payments,
+        consumoPorPessoa,
+        remaining,
       });
     }
 
-    const totalPaid = payments.reduce((sum, p) => sum + p.amountPaid, 0);
-    const remaining = invoice.totalAmount - totalPaid;
-
-    return {
-      _id: invoice._id.toString(),
-      groupFamilyId: invoice.groupFamilyId,
-      buyerIds: invoice.buyerIds,
-      startDate: invoice.startDate,
-      endDate: invoice.endDate,
-      totalAmount: invoice.totalAmount,
-      status: invoice.status,
-      createdAt: invoice.createdAt,
-      orders,
-      payments,
-      consumoPorPessoa,
-      remaining,
-    };
+    return results;
   }
 }
