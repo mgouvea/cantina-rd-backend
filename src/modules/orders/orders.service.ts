@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { CreateOrderDto, UpdateOrderDto } from './dto/create-order.dto';
-import { InjectModel } from '@nestjs/mongoose';
 import { Order, OrderDocument } from './entities/order.entity';
 import { Model } from 'mongoose';
-import { WhatsAppService } from '../whatsapp/whatsapp.service';
 import { UsersService } from '../users/users.service';
+import { WhatsappService } from '../whatsapp/whatsapp.service';
+import { InjectModel } from '@nestjs/mongoose';
 
 @Injectable()
 export class OrdersService {
@@ -12,7 +12,7 @@ export class OrdersService {
     @InjectModel(Order.name)
     private orderModel: Model<OrderDocument>,
 
-    private readonly whatsappService: WhatsAppService,
+    private readonly whatsappService: WhatsappService,
     private readonly userService: UsersService,
   ) {}
 
@@ -31,13 +31,15 @@ export class OrdersService {
     );
     const buyerName = user.name;
     const buyerPhone = user.telephone;
+    const orderTime = createdAt;
 
     // 3. Envia a mensagem se tiver número
     if (buyerPhone) {
-      await this.whatsappService.sendPurchaseNotification(
-        buyerPhone,
+      await this.whatsappService.sendPurchaseConfirmation(
         buyerName,
-        createOrderDto.totalPrice,
+        buyerPhone,
+        orderTime,
+        createOrderDto.products,
       );
     }
 

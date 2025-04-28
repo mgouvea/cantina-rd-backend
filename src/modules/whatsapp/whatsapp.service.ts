@@ -1,39 +1,69 @@
-import { Injectable } from '@nestjs/common';
-import axios from 'axios';
+// src/whatsapp/whatsapp.service.ts
+import { Injectable, OnModuleInit } from '@nestjs/common';
+import { create, Whatsapp } from '@wppconnect-team/wppconnect';
+import { ProductItem } from '../orders/dto/create-order.dto';
+import { formatDateTime, formatName } from 'src/shared/utils/helpers';
 
 @Injectable()
-export class WhatsAppService {
-  private readonly wppBaseUrl = 'http://localhost:21465/api'; // ou o IP/URL do seu servidor
+export class WhatsappService implements OnModuleInit {
+  private client: Whatsapp;
 
-  async sendMessage(phone: string, message: string) {
-    try {
-      const response = await axios.post(`${this.wppBaseUrl}/send-message`, {
-        session: 'default', // nome da sessão criada no WPPConnect
-        phone,
-        message,
-      });
-
-      return {
-        success: true,
-        data: response.data,
-      };
-    } catch (error) {
-      console.error('Erro ao enviar mensagem via WhatsApp:', error.message);
-      return {
-        success: false,
-        error: error.message,
-      };
-    }
+  async onModuleInit() {
+    this.client = await create({
+      session: 'sessionName', // Nome da sessão que será criada
+      catchQR: (base64Qrimg, asciiQR, attempts, urlCode) => {
+        console.log('QRCode gerado, escaneie com seu WhatsApp:');
+        console.log(asciiQR);
+      },
+      statusFind: (statusSession, session) => {
+        console.log(`Status da sessão ${session}: ${statusSession}`);
+      },
+    });
   }
 
-  async sendPurchaseNotification(
-    phone: string,
+  async sendPurchaseConfirmation(
     buyerName: string,
-    total: number,
+    phoneNumber: string,
+    orderTime: Date,
+    products: ProductItem[],
   ) {
-    const message = `🛒 Oi ${buyerName}, sua compra na cantina foi registrada no valor de R$ ${total.toFixed(
-      2,
-    )}. Grato!`;
-    return this.sendMessage(phone, message);
+    const message = this.generatePurchaseMessage(
+      buyerName,
+      orderTime,
+      products,
+    );
+    const formattedNumber = this.formatPhoneNumber(phoneNumber);
+
+    await this.client.sendText(formattedNumber, message);
+  }
+
+  private generatePurchaseMessage(
+    buyerName: string,
+    orderTime: Date,
+    products: ProductItem[],
+  ): string {
+    const productsList = products
+      .map((p) => `- ${p.quantity}x ${p.name} - R$${p.price}`)
+      .join('\n');
+
+    const total = products.reduce(
+      (total, p) => total + p.price * p.quantity,
+      0,
+    );
+
+    return `🛒 *Cantina RD*
+     \n*Olá, ${formatName(
+       buyerName,
+     )}! Compra realizada no valor de R$ ${total} ${
+      total == 1 ? 'real' : 'reais'
+    }*\n\n🗓️ Data e Hora: ${formatDateTime(
+      orderTime,
+    )}\n\nProdutos:\n${productsList}\n\nGrato por sua compra! 🙌`;
+  }
+
+  private formatPhoneNumber(phone: string): string {
+    // WPPConnect precisa do formato internacional + "c.us" no final
+    // Ex: 5511999999999@c.us
+    return `55${phone}@c.us`;
   }
 }
