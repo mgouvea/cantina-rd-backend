@@ -10,7 +10,7 @@ export class WhatsappService implements OnModuleInit {
 
   async onModuleInit() {
     this.client = await create({
-      session: 'sessionName', // Nome da sessão que será criada
+      session: 'sessionName',
       catchQR: (base64Qrimg, asciiQR, attempts, urlCode) => {
         console.log('QRCode gerado, escaneie com seu WhatsApp:');
         console.log(asciiQR);
@@ -62,8 +62,6 @@ export class WhatsappService implements OnModuleInit {
   }
 
   private formatPhoneNumber(phone: string): string {
-    // WPPConnect precisa do formato internacional + "c.us" no final
-    // Ex: 5511999999999@c.us
     return `55${phone}@c.us`;
   }
 }
