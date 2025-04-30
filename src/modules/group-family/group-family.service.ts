@@ -29,8 +29,31 @@ export class GroupFamilyService {
     });
   }
 
-  findAll() {
-    return this.groupFamilyModel.find();
+  async findAll() {
+    const groupFamilies = await this.groupFamilyModel.find();
+    const users = await this.usersService.findAll();
+
+    return groupFamilies.map((groupFamily) => ({
+      _id: groupFamily._id,
+      name: groupFamily.name,
+      owner: groupFamily.owner,
+      ownerName: users.find((user) => user._id.toString() === groupFamily.owner)
+        ?.name,
+      ownerAvatar: users.find(
+        (user) => user._id.toString() === groupFamily.owner,
+      )?.imageBase64,
+      members: groupFamily.members.map((member: any) => {
+        // Extrair o userId do objeto member
+        const memberId = typeof member === 'string' ? member : member.userId;
+        const user = users.find((user) => user._id.toString() === memberId);
+        return {
+          userId: memberId,
+          memberName: user?.name || '',
+          memberAvatar: user?.imageBase64 || '',
+        };
+      }),
+      createdAt: groupFamily.createdAt,
+    }));
   }
 
   async findOne(id: string) {
