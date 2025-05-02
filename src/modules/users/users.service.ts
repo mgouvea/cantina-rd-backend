@@ -32,8 +32,23 @@ export class UsersService {
   }
 
   async findAll() {
-    const users = await this.userModel.find().exec();
-    return users;
+    const users = await this.userModel.find();
+
+    const usersWithGroupFamily = await Promise.all(
+      users.map(async (user) => {
+        const groupFamilyName =
+          await this.groupFamilyService.findGroupFamilyName(
+            user.groupFamily ? user.groupFamily.toString() : '',
+          );
+
+        return {
+          ...user.toObject(),
+          groupFamilyName,
+        };
+      }),
+    );
+
+    return usersWithGroupFamily;
   }
 
   async findOne(id: string) {
