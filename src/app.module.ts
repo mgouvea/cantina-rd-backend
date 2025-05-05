@@ -12,6 +12,7 @@ import { AdminModule } from './modules/admin/admin.module';
 import { SubcategoriesModule } from './modules/subcategories/subcategories.module';
 import { InvoiceModule } from './modules/invoice/invoice.module';
 import { WhatsAppModule } from './modules/whatsapp/whatsapp.module';
+import { VisitorsModule } from './modules/visitors/visitors.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { WhatsAppModule } from './modules/whatsapp/whatsapp.module';
     SubcategoriesModule,
     InvoiceModule,
     WhatsAppModule,
+    VisitorsModule,
   ],
   controllers: [],
   providers: [],
