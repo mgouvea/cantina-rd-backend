@@ -1,4 +1,3 @@
-// src/whatsapp/whatsapp.service.ts
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { create, Whatsapp } from '@wppconnect-team/wppconnect';
 import { ProductItem } from '../orders/dto/create-order.dto';
@@ -7,11 +6,13 @@ import { formatDateTime, formatName } from 'src/shared/utils/helpers';
 @Injectable()
 export class WhatsappService implements OnModuleInit {
   private client: Whatsapp;
+  // Número que escaneou o QR code (seu número)
+  private readonly ADMIN_PHONE = '61982107187';
 
   async onModuleInit() {
     this.client = await create({
       session: 'sessionName',
-      catchQR: (base64Qrimg, asciiQR, attempts, urlCode) => {
+      catchQR: (base64Qrimg, asciiQR) => {
         console.log('QRCode gerado, escaneie com seu WhatsApp:');
         console.log(asciiQR);
       },
@@ -27,14 +28,50 @@ export class WhatsappService implements OnModuleInit {
     orderTime: Date,
     products: ProductItem[],
   ) {
-    const message = this.generatePurchaseMessage(
-      buyerName,
-      orderTime,
-      products,
-    );
-    const formattedNumber = this.formatPhoneNumber(phoneNumber);
+    try {
+      const message = this.generatePurchaseMessage(
+        buyerName,
+        orderTime,
+        products,
+      );
 
-    await this.client.sendText(formattedNumber, message);
+      const cleanBuyerNumber = phoneNumber.replace(/\D/g, '');
+      const formattedNumber = this.formatPhoneNumber(phoneNumber);
+
+      const isAdmin = cleanBuyerNumber === this.ADMIN_PHONE.replace(/\D/g, '');
+
+      if (!this.client || !this.client.isConnected()) {
+        await this.reconnect();
+      }
+
+      if (isAdmin) {
+        const adminMessage = `🧪 *Teste de auto-compra (número do administrador)*\n\n${message}`;
+        await this.client.sendText(formattedNumber, adminMessage);
+      } else {
+        await this.client.sendText(formattedNumber, message);
+      }
+    } catch (error) {
+      console.error('❌ Erro ao enviar mensagem:', error);
+      if (error.stack) console.error('Stack trace:', error.stack);
+      throw error;
+    }
+  }
+
+  private async reconnect() {
+    if (this.client && this.client.isConnected()) {
+      return;
+    }
+
+    this.client = await create({
+      session: 'sessionName',
+      catchQR: (base64Qrimg, asciiQR) => {
+        console.log('QRCode gerado para reconexão, escaneie com seu WhatsApp:');
+        console.log(asciiQR);
+      },
+      statusFind: (statusSession, session) => {
+        console.log(`Status da sessão ${session}: ${statusSession}`);
+      },
+    });
   }
 
   private generatePurchaseMessage(
@@ -62,6 +99,19 @@ export class WhatsappService implements OnModuleInit {
   }
 
   private formatPhoneNumber(phone: string): string {
-    return `55${phone}@c.us`;
+    let cleanNumber = phone.replace(/\D/g, '');
+
+    // Adiciona o DDI do Brasil se não tiver
+    if (!cleanNumber.startsWith('55')) {
+      cleanNumber = '55' + cleanNumber;
+    }
+
+    const prefixo = cleanNumber.slice(4, 5);
+
+    if (prefixo === '9' && cleanNumber.length === 13) {
+      cleanNumber = cleanNumber.slice(0, 4) + cleanNumber.slice(5);
+    }
+
+    return `${cleanNumber}@c.us`;
   }
 }

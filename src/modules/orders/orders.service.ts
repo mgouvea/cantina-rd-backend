@@ -5,15 +5,16 @@ import { Model } from 'mongoose';
 import { UsersService } from '../users/users.service';
 import { WhatsappService } from '../whatsapp/whatsapp.service';
 import { InjectModel } from '@nestjs/mongoose';
+import { GroupFamilyService } from '../group-family/group-family.service';
 
 @Injectable()
 export class OrdersService {
   constructor(
     @InjectModel(Order.name)
-    private orderModel: Model<OrderDocument>,
-
+    private readonly orderModel: Model<OrderDocument>,
     private readonly whatsappService: WhatsappService,
     private readonly userService: UsersService,
+    private readonly groupFamilyService: GroupFamilyService,
   ) {}
 
   async create(createOrderDto: CreateOrderDto) {
@@ -29,6 +30,7 @@ export class OrdersService {
     const user = await this.userService.findUserNameAndPhoneById(
       createOrderDto.buyerId,
     );
+    console.log('buyerUser', user);
     const buyerName = user.name;
     const buyerPhone = user.telephone;
     const orderTime = createdAt;
@@ -46,8 +48,31 @@ export class OrdersService {
     return order;
   }
 
-  findAll() {
-    return this.orderModel.find();
+  async findAll() {
+    const orders = await this.orderModel.find();
+
+    const ordersWithDetails = await Promise.all(
+      orders.map(async (order) => {
+        // Buscar o nome do comprador
+        const user = await this.userService.findUserNameAndPhoneById(
+          order.buyerId,
+        );
+
+        // Buscar o nome do grupo familiar
+        const groupFamilyName =
+          await this.groupFamilyService.findGroupFamilyName(
+            order.groupFamilyId,
+          );
+
+        return {
+          ...order.toObject(),
+          buyerName: user?.name || '',
+          groupFamilyName: groupFamilyName || '',
+        };
+      }),
+    );
+
+    return ordersWithDetails;
   }
 
   findOne(id: number) {
