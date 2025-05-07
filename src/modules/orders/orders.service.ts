@@ -30,7 +30,6 @@ export class OrdersService {
     const user = await this.userService.findUserNameAndPhoneById(
       createOrderDto.buyerId,
     );
-    console.log('buyerUser', user);
     const buyerName = user.name;
     const buyerPhone = user.telephone;
     const orderTime = createdAt;

@@ -13,6 +13,7 @@ import { SubcategoriesModule } from './modules/subcategories/subcategories.modul
 import { InvoiceModule } from './modules/invoice/invoice.module';
 import { WhatsAppModule } from './modules/whatsapp/whatsapp.module';
 import { VisitorsModule } from './modules/visitors/visitors.module';
+import { OrdersVisitorsModule } from './modules/orders-visitors/orders-visitors.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { VisitorsModule } from './modules/visitors/visitors.module';
     InvoiceModule,
     WhatsAppModule,
     VisitorsModule,
+    OrdersVisitorsModule,
   ],
   controllers: [],
   providers: [],

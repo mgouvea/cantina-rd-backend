@@ -11,5 +11,6 @@ import { Visitor, VisitorSchema } from './entities/visitor.entity';
   ],
   controllers: [VisitorsController],
   providers: [VisitorsService],
+  exports: [VisitorsService],
 })
 export class VisitorsModule {}

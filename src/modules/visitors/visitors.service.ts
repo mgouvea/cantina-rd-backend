@@ -43,6 +43,14 @@ export class VisitorsService {
     return this.visitorModel.findById(id);
   }
 
+  async findVisitorNameAndPhoneById(visitorId: string) {
+    const visitor = await this.visitorModel
+      .findById(visitorId)
+      .select('name telephone churchCore')
+      .exec();
+    return visitor;
+  }
+
   async update(id: string, updateVisitorDto: UpdateVisitorDto) {
     return this.visitorModel.findByIdAndUpdate(id, updateVisitorDto, {
       new: true,
