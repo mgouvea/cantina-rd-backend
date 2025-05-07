@@ -12,12 +12,23 @@ export class VisitorsService {
   ) {}
 
   async create(createVisitorDto: CreateVisitorDto) {
+    const visitorExists = await this.visitorModel.findOne({
+      name: createVisitorDto.name.toLowerCase(),
+      telephone: createVisitorDto.telephone,
+    });
+
+    if (visitorExists) {
+      visitorExists.visitCount++;
+      visitorExists.lastVisit = new Date();
+      return visitorExists.save();
+    }
+
     const createdVisitor = new this.visitorModel({
       ...createVisitorDto,
+      name: createVisitorDto.name.toLowerCase(),
       visitCount: 1,
       lastVisit: new Date(),
     });
-    console.log('createdVisitor', createdVisitor);
     return createdVisitor.save();
   }
 
@@ -28,7 +39,6 @@ export class VisitorsService {
       });
     }
 
-    // Recentes ou frequentes
     const dateThreshold = new Date();
     dateThreshold.setDate(dateThreshold.getDate() - 30);
     return this.visitorModel.find({
