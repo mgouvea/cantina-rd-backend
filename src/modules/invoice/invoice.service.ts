@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Invoice, InvoiceDocument } from './entities/invoice.entity';
@@ -27,9 +27,50 @@ export class InvoicesService {
 
   async create(
     createInvoiceDto: CreateInvoiceDto,
-  ): Promise<InvoiceCreateResponse> {
-    const { groupFamilyId, startDate, endDate } = createInvoiceDto;
+  ): Promise<InvoiceCreateResponse | InvoiceCreateResponse[]> {
+    const { groupFamilyIds, startDate, endDate } = createInvoiceDto;
 
+    // Handle single groupFamilyId for backward compatibility
+    if (!Array.isArray(groupFamilyIds) || groupFamilyIds.length === 0) {
+      throw new Error('Pelo menos um ID de grupo familiar deve ser fornecido.');
+    }
+
+    // If only one group family ID is provided, use the original behavior
+    if (groupFamilyIds.length === 1) {
+      return this.createSingleInvoice(groupFamilyIds[0], startDate, endDate);
+    }
+
+    // Process multiple group family IDs
+    const results: InvoiceCreateResponse[] = [];
+
+    for (const groupFamilyId of groupFamilyIds) {
+      try {
+        const result = await this.createSingleInvoice(
+          groupFamilyId,
+          startDate,
+          endDate,
+        );
+        results.push(result);
+      } catch (error) {
+        // Skip groups without orders and continue with the next one
+        console.log(`Skipping group ${groupFamilyId}: ${error.message}`);
+      }
+    }
+
+    if (results.length === 0) {
+      throw new BadRequestException(
+        'Nenhum novo pedido encontrado no período informado para os grupos selecionados.',
+      );
+    }
+
+    return results;
+  }
+
+  private async createSingleInvoice(
+    groupFamilyId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<InvoiceCreateResponse> {
     const orders = await this.orderModel.find({
       groupFamilyId,
       invoiceId: { $exists: false },
@@ -37,7 +78,9 @@ export class InvoicesService {
     });
 
     if (orders.length === 0) {
-      throw new Error('Nenhum novo pedido encontrado no período informado.');
+      throw new BadRequestException(
+        `Nenhum novo pedido encontrado no período informado para o grupo ${groupFamilyId}.`,
+      );
     }
 
     const buyerIds = [...new Set(orders.map((o) => o.buyerId))];
@@ -175,7 +218,6 @@ export class InvoicesService {
     // Agrupa pagamentos por invoice
     const paymentsGrouped: Record<string, number> = {};
     let totalPaid = 0;
-    let totalPaidToInvoices = 0;
     let totalCredit = 0;
 
     for (const payment of payments) {
@@ -184,7 +226,6 @@ export class InvoicesService {
       if (payment.isCredit) {
         totalCredit += payment.amountPaid;
       } else {
-        totalPaidToInvoices += payment.amountPaid;
         const invId = payment.invoiceId?.toString();
         paymentsGrouped[invId] =
           (paymentsGrouped[invId] || 0) + payment.amountPaid;
@@ -296,5 +337,10 @@ export class InvoicesService {
     }
 
     return results;
+  }
+
+  async deleteInvoice(invoiceId: string) {
+    await this.invoiceModel.findByIdAndDelete(invoiceId);
+    return { message: 'Invoice deleted successfully' };
   }
 }

@@ -1,7 +1,7 @@
 import { PartialType } from '@nestjs/mapped-types';
 
 export class CreateInvoiceDto {
-  groupFamilyId: string;
+  groupFamilyIds: string[];
   startDate: Date;
   endDate: Date;
 }
