@@ -1,6 +1,9 @@
-import { Controller, Post, Body, Get, Param } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Delete } from '@nestjs/common';
 import { InvoicesService } from './invoice.service';
-import { CreateInvoiceDto } from './dto/create-invoice.dto';
+import {
+  CreateInvoiceDto,
+  FetchMultipleInvoicesDto,
+} from './dto/create-invoice.dto';
 
 @Controller('invoices')
 export class InvoicesController {
@@ -9,6 +12,11 @@ export class InvoicesController {
   @Post()
   create(@Body() createInvoiceDto: CreateInvoiceDto) {
     return this.invoicesService.create(createInvoiceDto);
+  }
+
+  @Post('full')
+  getMultipleFullInvoices(@Body() body: FetchMultipleInvoicesDto) {
+    return this.invoicesService.getFullInvoices(body.ids);
   }
 
   @Get()
@@ -29,5 +37,10 @@ export class InvoicesController {
   @Get('/user/:buyerId/statement')
   getUserStatement(@Param('buyerId') buyerId: string) {
     return this.invoicesService.getUserStatement(buyerId);
+  }
+
+  @Delete(':id')
+  deleteInvoice(@Param('id') invoiceId: string) {
+    return this.invoicesService.deleteInvoice(invoiceId);
   }
 }

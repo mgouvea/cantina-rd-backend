@@ -1,34 +1,30 @@
-import { Controller, Post, Body } from '@nestjs/common';
-import { WhatsAppService } from './whatsapp.service';
+// src/whatsapp/whatsapp.controller.ts
+
+import { Body, Controller, Post } from '@nestjs/common';
+import { WhatsappService } from './whatsapp.service';
+import { ProductItem } from '../orders/dto/create-order.dto';
 
 @Controller('whatsapp')
-export class WhatsAppController {
-  constructor(private readonly whatsappService: WhatsAppService) {}
+export class WhatsappController {
+  constructor(private readonly whatsappService: WhatsappService) {}
 
-  @Post('send')
-  async sendWhatsAppMessage(@Body() body: { phone: string; message: string }) {
-    const { phone, message } = body;
-    return this.whatsappService.sendMessage(phone, message);
-  }
-
-  @Post('purchase-notification')
-  async notifyPurchase(
-    @Body() body: { buyerId: string; phone: string; total: number },
+  @Post('send-purchase')
+  async sendPurchaseMessage(
+    @Body()
+    body: {
+      buyerName: string;
+      phoneNumber: string;
+      orderTime: Date;
+      products: ProductItem[];
+    },
   ) {
-    // Aqui você pode buscar o nome real do comprador pelo buyerId
-    const buyerName = await this.getBuyerName(body.buyerId); // simulado
-    return this.whatsappService.sendPurchaseNotification(
-      body.phone,
+    const { buyerName, phoneNumber, orderTime, products } = body;
+    await this.whatsappService.sendPurchaseConfirmation(
       buyerName,
-      body.total,
+      phoneNumber,
+      orderTime,
+      products,
     );
-  }
-
-  // Simulação simples de lookup (substitua com sua lógica real)
-  private async getBuyerName(buyerId: string): Promise<string> {
-    // Exemplo fixo, ideal é buscar no banco de dados
-    if (buyerId === '1') return 'João';
-    if (buyerId === '2') return 'Maria';
-    return 'Cliente';
+    return { message: 'Mensagem enviada com sucesso!' };
   }
 }

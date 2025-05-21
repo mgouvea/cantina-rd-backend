@@ -1,19 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { CreateOrderDto, UpdateOrderDto } from './dto/create-order.dto';
-import { InjectModel } from '@nestjs/mongoose';
 import { Order, OrderDocument } from './entities/order.entity';
 import { Model } from 'mongoose';
-import { WhatsAppService } from '../whatsapp/whatsapp.service';
 import { UsersService } from '../users/users.service';
+import { WhatsappService } from '../whatsapp/whatsapp.service';
+import { InjectModel } from '@nestjs/mongoose';
+import { GroupFamilyService } from '../group-family/group-family.service';
 
 @Injectable()
 export class OrdersService {
   constructor(
     @InjectModel(Order.name)
-    private orderModel: Model<OrderDocument>,
-
-    private readonly whatsappService: WhatsAppService,
+    private readonly orderModel: Model<OrderDocument>,
+    private readonly whatsappService: WhatsappService,
     private readonly userService: UsersService,
+    private readonly groupFamilyService: GroupFamilyService,
   ) {}
 
   async create(createOrderDto: CreateOrderDto) {
@@ -31,21 +32,46 @@ export class OrdersService {
     );
     const buyerName = user.name;
     const buyerPhone = user.telephone;
+    const orderTime = createdAt;
 
     // 3. Envia a mensagem se tiver número
     if (buyerPhone) {
-      await this.whatsappService.sendPurchaseNotification(
-        buyerPhone,
+      await this.whatsappService.sendPurchaseConfirmation(
         buyerName,
-        createOrderDto.totalPrice,
+        buyerPhone,
+        orderTime,
+        createOrderDto.products,
       );
     }
 
     return order;
   }
 
-  findAll() {
-    return this.orderModel.find();
+  async findAll() {
+    const orders = await this.orderModel.find();
+
+    const ordersWithDetails = await Promise.all(
+      orders.map(async (order) => {
+        // Buscar o nome do comprador
+        const user = await this.userService.findUserNameAndPhoneById(
+          order.buyerId,
+        );
+
+        // Buscar o nome do grupo familiar
+        const groupFamilyName =
+          await this.groupFamilyService.findGroupFamilyName(
+            order.groupFamilyId,
+          );
+
+        return {
+          ...order.toObject(),
+          buyerName: user?.name || '',
+          groupFamilyName: groupFamilyName || '',
+        };
+      }),
+    );
+
+    return ordersWithDetails;
   }
 
   findOne(id: number) {
