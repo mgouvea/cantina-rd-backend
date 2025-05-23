@@ -3,13 +3,18 @@ import { create, Whatsapp, defaultLogger } from '@wppconnect-team/wppconnect';
 import * as fs from 'fs';
 import * as path from 'path';
 import { ProductItem } from '../orders/dto/create-order.dto';
-import { formatDateTime, formatName } from 'src/shared/utils/helpers';
+import {
+  formatDateShort,
+  formatDateTime,
+  formatName,
+} from 'src/shared/utils/helpers';
+// Tipos utilizados nos parâmetros dos métodos
 
 @Injectable()
 export class WhatsappService implements OnModuleInit {
   private client: Whatsapp;
   // Número que escaneou o QR code (seu número)
-  private readonly ADMIN_PHONE = '61992278193';
+  private readonly ADMIN_PHONE = '61982107187';
   private qrCode: string = null;
   private qrCodeBase64: string = null;
   private readonly SESSION_NAME = 'sessionName';
@@ -61,21 +66,46 @@ export class WhatsappService implements OnModuleInit {
         products,
       );
 
-      const cleanBuyerNumber = phoneNumber.replace(/\D/g, '');
       const formattedNumber = this.formatPhoneNumber(phoneNumber);
-
-      const isAdmin = cleanBuyerNumber === this.ADMIN_PHONE.replace(/\D/g, '');
 
       if (!this.client || !this.client.isConnected()) {
         await this.reconnect();
       }
 
-      if (isAdmin) {
-        const adminMessage = `🧪 *Teste de auto-compra (número do administrador)*\n\n${message}`;
-        await this.client.sendText(formattedNumber, adminMessage);
-      } else {
-        await this.client.sendText(formattedNumber, message);
+      await this.client.sendText(formattedNumber, message);
+    } catch (error) {
+      console.error('❌ Erro ao enviar mensagem:', error);
+      if (error.stack) console.error('Stack trace:', error.stack);
+      throw error;
+    }
+  }
+
+  async sendInvoiceConfirmation(
+    groupFamilyOwnerName: string,
+    phoneNumber: string,
+    startDate: Date,
+    endDate: Date,
+    consumoPorPessoa: Record<string, any[]>,
+    buyerNames: Record<string, string>,
+    totalAmount: number,
+  ) {
+    try {
+      const message = this.generateInvoiceMessage(
+        groupFamilyOwnerName,
+        startDate,
+        endDate,
+        consumoPorPessoa,
+        buyerNames,
+        totalAmount,
+      );
+
+      const formattedNumber = this.formatPhoneNumber(phoneNumber);
+
+      if (!this.client || !this.client.isConnected()) {
+        await this.reconnect();
       }
+
+      await this.client.sendText(formattedNumber, message);
     } catch (error) {
       console.error('❌ Erro ao enviar mensagem:', error);
       if (error.stack) console.error('Stack trace:', error.stack);
@@ -129,6 +159,56 @@ export class WhatsappService implements OnModuleInit {
     }*\n\n🗓️ Data e Hora: ${formatDateTime(
       orderTime,
     )}\n\nProdutos:\n${productsList}\n\nGrato por sua compra! 🙌`;
+  }
+
+  private generateInvoiceMessage(
+    groupFamilyOwnerName: string,
+    startDate: Date,
+    endDate: Date,
+    consumoPorPessoa: Record<string, any[]>,
+    buyerNames: Record<string, string>,
+    totalAmount: number,
+  ): string {
+    // Formatar o detalhe de consumo por pessoa
+    let detalhesConsumo = '';
+
+    for (const [buyerId, compras] of Object.entries(consumoPorPessoa)) {
+      const buyerName = buyerNames[buyerId] || 'Usuário';
+      detalhesConsumo += `\n\n*Compras de ${formatName(buyerName)}:*`;
+
+      // Agrupar compras por data
+      const comprasPorData = new Map<string, any[]>();
+
+      for (const compra of compras) {
+        const dataFormatada = formatDateTime(compra.date);
+        if (!comprasPorData.has(dataFormatada)) {
+          comprasPorData.set(dataFormatada, []);
+        }
+        comprasPorData.get(dataFormatada).push(compra);
+      }
+
+      // Listar compras por data
+      for (const [data, comprasNaData] of comprasPorData.entries()) {
+        detalhesConsumo += `\n🗓️ *${data}*`;
+
+        for (const compra of comprasNaData) {
+          detalhesConsumo += '\n';
+          for (const produto of compra.products) {
+            detalhesConsumo += `  - ${produto.quantity}x ${produto.name} - R$${produto.price}\n`;
+          }
+          detalhesConsumo += `  *Total: R$${compra.totalPrice}*`;
+        }
+      }
+    }
+
+    return `💸 *Fatura - Cantina RD*\n
+*Olá, ${formatName(
+      groupFamilyOwnerName,
+    )}! Uma nova fatura foi gerada no valor de R$ ${totalAmount} ${
+      totalAmount == 1 ? 'real' : 'reais'
+    }*\n\n🗓️ *Período:* ${formatDateShort(startDate)} a ${formatDateShort(
+      endDate,
+    )}\n${detalhesConsumo}\n\n*Para realizar o pagamento utilize nossa chave pix:*\n\n*tes.realezadivina@udv.org.br*\n\nPor favor, envie o comprovante de pagamento para que possamos processar sua fatura. \n\nGrato por utilizar a Cantina RD! 🙌`;
   }
 
   private formatPhoneNumber(phone: string): string {

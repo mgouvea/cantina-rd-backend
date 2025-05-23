@@ -19,3 +19,14 @@ export const formatDateTime = (date: Date): string => {
   const minutes = date.getMinutes().toString().padStart(2, '0');
   return `${day}/${month} às ${hours}:${minutes}`;
 };
+
+/**
+ * Formata uma data para o padrão DD/MM
+ * @param date Data a ser formatada
+ * @returns String formatada no padrão DD/MM
+ */
+export const formatDateShort = (date: Date): string => {
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  return `${day}/${month}`;
+};

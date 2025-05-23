@@ -1,5 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { IsArray, IsDate, IsEnum, IsNumber, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsDate,
+  IsEnum,
+  IsNumber,
+  IsString,
+} from 'class-validator';
 import { Document } from 'mongoose';
 
 export type InvoiceDocument = Invoice & Document;
@@ -25,6 +32,10 @@ export class Invoice {
   @Prop({ isRequired: true })
   @IsNumber()
   totalAmount: number;
+
+  @Prop({ isRequired: true, default: false })
+  @IsBoolean()
+  sentByWhatsapp: boolean;
 
   @Prop({ isRequired: true, default: 'OPEN' })
   @IsEnum(['OPEN', 'PARTIALLY_PAID', 'PAID'])
