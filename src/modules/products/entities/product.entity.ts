@@ -29,6 +29,9 @@ export class Product {
   @Prop({ required: true })
   urlImage: string;
 
+  @Prop({ required: true, unique: true })
+  publicIdImage: string;
+
   @Prop({ required: false, default: Date.now })
   createdAt: Date;
 

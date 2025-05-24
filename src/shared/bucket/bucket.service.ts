@@ -52,4 +52,12 @@ export class BucketService {
       );
     }
   }
+
+  async deleteImageByName(publicId: string): Promise<void> {
+    try {
+      await cloudinary.uploader.destroy(publicId);
+    } catch (error) {
+      console.warn(`Erro ao excluir imagem no Cloudinary: ${error.message}`);
+    }
+  }
 }

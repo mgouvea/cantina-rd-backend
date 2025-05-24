@@ -8,6 +8,7 @@ export class ProductDto {
   categoryId: string;
   subcategoryId: string;
   urlImage: string;
+  publicIdImage: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
