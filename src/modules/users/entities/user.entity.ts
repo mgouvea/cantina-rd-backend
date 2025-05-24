@@ -19,7 +19,7 @@ export class User extends Document {
   groupFamily: Types.ObjectId;
 
   @Prop({ required: true })
-  imageBase64: string;
+  urlImage: string;
 
   @Prop({ required: false })
   isChild: boolean;

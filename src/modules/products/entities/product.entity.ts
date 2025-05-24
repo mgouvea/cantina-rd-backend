@@ -27,7 +27,7 @@ export class Product {
   subcategoryId: Types.ObjectId; // Isso será o ID da subcategoria referenciada
 
   @Prop({ required: true })
-  imageBase64: string;
+  urlImage: string;
 
   @Prop({ required: false, default: Date.now })
   createdAt: Date;

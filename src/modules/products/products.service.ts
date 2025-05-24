@@ -3,15 +3,28 @@ import { Product, ProductDocument } from './entities/product.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { ProductDto, UpdateProductDto } from './dto/product.dto';
 import { Model } from 'mongoose';
+import { sanitizedName } from 'src/shared/utils/helpers';
+import { BucketService } from 'src/shared/bucket/bucket.service';
 
 @Injectable()
 export class ProductsService {
   constructor(
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
+    private readonly bucketService: BucketService,
   ) {}
 
-  create(createProductDto: ProductDto) {
-    return this.productModel.create(createProductDto);
+  async create(createProductDto: ProductDto) {
+    const imageUrl = await this.bucketService.uploadBase64Image(
+      createProductDto.urlImage,
+      'products',
+      sanitizedName(createProductDto.name),
+    );
+    const product = new this.productModel({
+      ...createProductDto,
+      createdAt: Date.now(),
+      urlImage: imageUrl,
+    });
+    return product.save();
   }
 
   async findAll() {

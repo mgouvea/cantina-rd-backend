@@ -41,7 +41,7 @@ export class GroupFamilyService {
         ?.name,
       ownerAvatar: users.find(
         (user) => user._id.toString() === groupFamily.owner,
-      )?.imageBase64,
+      )?.urlImage,
       members: groupFamily.members.map((member: any) => {
         // Extrair o userId do objeto member
         const memberId = typeof member === 'string' ? member : member.userId;
@@ -49,7 +49,7 @@ export class GroupFamilyService {
         return {
           userId: memberId,
           memberName: user?.name || '',
-          memberAvatar: user?.imageBase64 || '',
+          memberAvatar: user?.urlImage || '',
         };
       }),
       createdAt: groupFamily.createdAt,
@@ -76,7 +76,7 @@ export class GroupFamilyService {
         ?.name,
       ownerAvatar: users.find(
         (user) => user._id.toString() === groupFamily.owner,
-      )?.imageBase64,
+      )?.urlImage,
     }));
   }
 

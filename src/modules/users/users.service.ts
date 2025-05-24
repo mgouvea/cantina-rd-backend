@@ -12,6 +12,8 @@ import { Model } from 'mongoose';
 import { GroupFamilyUser } from 'src/shared/types/user.types';
 import { AdminService } from '../admin/admin.service';
 import { GroupFamilyService } from '../group-family/group-family.service';
+import { sanitizedName } from 'src/shared/utils/helpers';
+import { BucketService } from 'src/shared/bucket/bucket.service';
 
 @Injectable()
 export class UsersService {
@@ -20,13 +22,21 @@ export class UsersService {
     private adminService: AdminService,
     @Inject(forwardRef(() => GroupFamilyService))
     private groupFamilyService: GroupFamilyService,
+    private bucketService: BucketService,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
+    const imageUrl = await this.bucketService.uploadBase64Image(
+      createUserDto.urlImage,
+      'users',
+      sanitizedName(createUserDto.name),
+    );
+
     const user = new this.userModel({
       ...createUserDto,
       name: createUserDto.name.toLowerCase(),
       createdAt: new Date(),
+      urlImage: imageUrl,
     });
     return user.save();
   }
