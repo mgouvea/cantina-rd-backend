@@ -1,3 +1,5 @@
+import slugify from 'slugify';
+
 export const formatName = (fullName: string): string => {
   const names = fullName.split(' ');
   const firstName = names[0].charAt(0).toUpperCase() + names[0].slice(1);
@@ -30,3 +32,9 @@ export const formatDateShort = (date: Date): string => {
   const month = (date.getMonth() + 1).toString().padStart(2, '0');
   return `${day}/${month}`;
 };
+
+export const sanitizedName = (name: string): string =>
+  slugify(name, {
+    lower: true,
+    strict: true,
+  });

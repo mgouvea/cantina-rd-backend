@@ -8,6 +8,8 @@ import {
   Subcategory,
   SubcategoryDocument,
 } from '../subcategories/entities/subcategory.entity';
+import { BucketService } from 'src/shared/bucket/bucket.service';
+import { sanitizedName } from 'src/shared/utils/helpers';
 
 @Injectable()
 export class CategoriesService {
@@ -16,12 +18,19 @@ export class CategoriesService {
     @InjectModel(Subcategory.name)
     private subcategoryModel: Model<SubcategoryDocument>,
     private readonly subcategoriesService: SubcategoriesService,
+    private readonly bucketService: BucketService,
   ) {}
 
-  create(createCategoryDto: CreateCategoryDto) {
+  async create(createCategoryDto: CreateCategoryDto) {
+    const imageUrl = await this.bucketService.uploadBase64Image(
+      createCategoryDto.urlImage,
+      'categories',
+      sanitizedName(createCategoryDto.name),
+    );
     const category = new this.categoryModel({
       ...createCategoryDto,
       createdAt: Date.now(),
+      urlImage: imageUrl,
     });
     return category.save();
   }

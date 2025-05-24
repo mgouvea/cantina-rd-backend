@@ -14,6 +14,7 @@ import { InvoiceModule } from './modules/invoice/invoice.module';
 import { WhatsAppModule } from './modules/whatsapp/whatsapp.module';
 import { VisitorsModule } from './modules/visitors/visitors.module';
 import { OrdersVisitorsModule } from './modules/orders-visitors/orders-visitors.module';
+import { BucketModule } from './shared/bucket/bucket.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { OrdersVisitorsModule } from './modules/orders-visitors/orders-visitors.
     WhatsAppModule,
     VisitorsModule,
     OrdersVisitorsModule,
+    BucketModule,
   ],
   controllers: [],
   providers: [],
