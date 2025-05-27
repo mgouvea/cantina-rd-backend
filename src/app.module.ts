@@ -24,10 +24,7 @@ import { BucketModule } from './shared/bucket/bucket.module';
     }),
     MongooseModule.forRootAsync({
       useFactory: () => {
-        const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.ldjep.mongodb.net/cantina-rd?retryWrites=true&w=majority&appName=Cluster0`;
-
-        console.log('Tentando conectar ao MongoDB...');
-        console.log('URI:', uri.replace(process.env.DB_PASS, '***'));
+        const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.twkwaw3.mongodb.net/cantina-rd?retryWrites=true&w=majority`;
 
         return {
           uri,

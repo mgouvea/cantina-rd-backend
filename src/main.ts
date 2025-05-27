@@ -19,11 +19,6 @@ async function bootstrap() {
       );
     }
 
-    console.log('🚀 Iniciando aplicação NestJS...');
-    console.log(`📍 Porta: ${process.env.PORT}`);
-    console.log(`👤 DB User: ${process.env.DB_USER}`);
-    console.log(`🔑 DB Pass: ${process.env.DB_PASS ? '***' : 'MISSING'}`);
-
     const app = await NestFactory.create(AppModule);
 
     app.enableCors({
