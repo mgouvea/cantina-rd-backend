@@ -112,6 +112,8 @@ export interface FullInvoiceResponse {
       }[];
     }[]
   >;
+  consumidoresNomes: Record<string, string>;
+  ownerName: string;
   remaining: number;
 }
 

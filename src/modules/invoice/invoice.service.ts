@@ -165,6 +165,8 @@ export class InvoicesService {
           orders: [],
           payments: [],
           consumoPorPessoa,
+          consumidoresNomes: {},
+          ownerName: '',
           remaining: updatedInvoice.totalAmount,
         },
         consumoPorPessoa,
@@ -210,6 +212,8 @@ export class InvoicesService {
         orders: [],
         payments: [],
         consumoPorPessoa,
+        consumidoresNomes: {},
+        ownerName: '',
         remaining: newInvoice.totalAmount,
       },
       consumoPorPessoa,
@@ -309,6 +313,7 @@ export class InvoicesService {
     }
 
     const results: FullInvoiceResponse[] = [];
+    const userService = this.moduleRef.get(UsersService, { strict: false });
 
     for (const invoice of invoicesRaw) {
       const ordersRaw = await this.orderModel
@@ -348,6 +353,34 @@ export class InvoicesService {
         });
       }
 
+      // Buscar o grupo familiar para obter o responsável
+      const groupFamily = await this.groupFamilyModel.findById(
+        invoice.groupFamilyId,
+      );
+
+      let ownerName = '';
+      if (groupFamily) {
+        try {
+          const owner = await userService.findUserNameAndPhoneById(
+            groupFamily.owner,
+          );
+          ownerName = owner?.name || 'Responsável não encontrado';
+        } catch (error) {
+          ownerName = 'Responsável não encontrado';
+        }
+      }
+
+      // Buscar nomes dos compradores
+      const consumidoresNomes: Record<string, string> = {};
+      for (const buyerId of Object.keys(consumoPorPessoa)) {
+        try {
+          const buyer = await userService.findUserNameAndPhoneById(buyerId);
+          consumidoresNomes[buyerId] = buyer?.name || 'Usuário não encontrado';
+        } catch (error) {
+          consumidoresNomes[buyerId] = 'Usuário não encontrado';
+        }
+      }
+
       const totalPaid = payments.reduce((sum, p) => sum + p.amountPaid, 0);
       const remaining = invoice.totalAmount - totalPaid;
 
@@ -364,6 +397,8 @@ export class InvoicesService {
         orders,
         payments,
         consumoPorPessoa,
+        consumidoresNomes,
+        ownerName,
         remaining,
       });
     }
@@ -440,9 +475,8 @@ export class InvoicesService {
         owner.telephone,
         invoice.startDate,
         invoice.endDate,
-        consumoPorPessoa,
-        buyerNames,
         invoice.totalAmount,
+        invoiceId,
       );
 
       // Atualizar a fatura para marcar como enviada por WhatsApp

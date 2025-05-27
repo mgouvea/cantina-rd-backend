@@ -85,18 +85,16 @@ export class WhatsappService implements OnModuleInit {
     phoneNumber: string,
     startDate: Date,
     endDate: Date,
-    consumoPorPessoa: Record<string, any[]>,
-    buyerNames: Record<string, string>,
     totalAmount: number,
+    invoiceId: string,
   ) {
     try {
       const message = this.generateInvoiceMessage(
         groupFamilyOwnerName,
         startDate,
         endDate,
-        consumoPorPessoa,
-        buyerNames,
         totalAmount,
+        invoiceId,
       );
 
       const formattedNumber = this.formatPhoneNumber(phoneNumber);
@@ -165,50 +163,23 @@ export class WhatsappService implements OnModuleInit {
     groupFamilyOwnerName: string,
     startDate: Date,
     endDate: Date,
-    consumoPorPessoa: Record<string, any[]>,
-    buyerNames: Record<string, string>,
     totalAmount: number,
+    invoiceId: string,
   ): string {
-    // Formatar o detalhe de consumo por pessoa
-    let detalhesConsumo = '';
+    return `📄 *Fatura - Cantina RD*
 
-    for (const [buyerId, compras] of Object.entries(consumoPorPessoa)) {
-      const buyerName = buyerNames[buyerId] || 'Usuário';
-      detalhesConsumo += `\n\n*Compras de ${formatName(buyerName)}:*`;
+    *Olá, ${formatName(groupFamilyOwnerName)}! Sua fatura foi gerada:*
 
-      // Agrupar compras por data
-      const comprasPorData = new Map<string, any[]>();
+    💰 *Valor:* R$ ${totalAmount}
+    🗓️ *Período:* ${formatDateShort(startDate)} a ${formatDateShort(endDate)}
+    💳 *PIX:* tes.realezadivina@udv.org.br
+    📌 Envie o comprovante para processarmos o pagamento.
 
-      for (const compra of compras) {
-        const dataFormatada = formatDateTime(compra.date);
-        if (!comprasPorData.has(dataFormatada)) {
-          comprasPorData.set(dataFormatada, []);
-        }
-        comprasPorData.get(dataFormatada).push(compra);
-      }
+    🔗 *Veja o detalhamento da fatura no link abaixo:*
 
-      // Listar compras por data
-      for (const [data, comprasNaData] of comprasPorData.entries()) {
-        detalhesConsumo += `\n🗓️ *${data}*`;
+https://painel.cantina-rd.com/fatura-cliente/${invoiceId}
 
-        for (const compra of comprasNaData) {
-          detalhesConsumo += '\n';
-          for (const produto of compra.products) {
-            detalhesConsumo += `  - ${produto.quantity}x ${produto.name} - R$${produto.price}\n`;
-          }
-          detalhesConsumo += `  *Total: R$${compra.totalPrice}*`;
-        }
-      }
-    }
-
-    return `💸 *Fatura - Cantina RD*\n
-*Olá, ${formatName(
-      groupFamilyOwnerName,
-    )}! Uma nova fatura foi gerada no valor de R$ ${totalAmount} ${
-      totalAmount == 1 ? 'real' : 'reais'
-    }*\n\n🗓️ *Período:* ${formatDateShort(startDate)} a ${formatDateShort(
-      endDate,
-    )}\n${detalhesConsumo}\n\n*Para realizar o pagamento utilize nossa chave pix:*\n\n*tes.realezadivina@udv.org.br*\n\nPor favor, envie o comprovante de pagamento para que possamos processar sua fatura. \n\nGrato por utilizar a Cantina RD! 🙌`;
+    Grato! 🙌`;
   }
 
   private formatPhoneNumber(phone: string): string {

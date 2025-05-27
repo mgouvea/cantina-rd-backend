@@ -19,7 +19,7 @@ async function bootstrap() {
   if (!process.env.PORT) {
     throw new Error('PORT must be defined by the environment (Plesk)');
   }
-  
+
   await app.listen(process.env.PORT);
 }
 bootstrap();

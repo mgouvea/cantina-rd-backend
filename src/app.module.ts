@@ -24,7 +24,7 @@ import { BucketModule } from './shared/bucket/bucket.module';
     }),
     MongooseModule.forRootAsync({
       useFactory: () => ({
-        uri: `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.ldjep.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`,
+        uri: `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.ldjep.mongodb.net/cantina-rd?retryWrites=true&w=majority&appName=Cluster0`,
       }),
     }),
     UsersModule,
