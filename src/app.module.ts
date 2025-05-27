@@ -23,9 +23,36 @@ import { BucketModule } from './shared/bucket/bucket.module';
       envFilePath: '.env',
     }),
     MongooseModule.forRootAsync({
-      useFactory: () => ({
-        uri: `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.ldjep.mongodb.net/cantina-rd?retryWrites=true&w=majority&appName=Cluster0`,
-      }),
+      useFactory: () => {
+        const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.ldjep.mongodb.net/cantina-rd?retryWrites=true&w=majority&appName=Cluster0`;
+
+        console.log('Tentando conectar ao MongoDB...');
+        console.log('URI:', uri.replace(process.env.DB_PASS, '***'));
+
+        return {
+          uri,
+          connectionFactory: (connection) => {
+            connection.on('connected', () => {
+              console.log('✅ MongoDB conectado com sucesso!');
+            });
+            connection.on('error', (error) => {
+              console.error('❌ Erro na conexão MongoDB:', error.message);
+            });
+            connection.on('disconnected', () => {
+              console.log('🔌 MongoDB desconectado');
+            });
+            return connection;
+          },
+          // Configurações de timeout e retry mais adequadas para produção
+          serverSelectionTimeoutMS: 10000, // 10 segundos
+          socketTimeoutMS: 45000, // 45 segundos
+          connectTimeoutMS: 10000, // 10 segundos
+          maxPoolSize: 10,
+          minPoolSize: 2,
+          retryWrites: true,
+          retryReads: true,
+        };
+      },
     }),
     UsersModule,
     ProductsModule,
