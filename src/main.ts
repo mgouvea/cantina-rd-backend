@@ -5,7 +5,6 @@ import * as bodyParser from 'body-parser';
 
 async function bootstrap() {
   try {
-    // Verificar variáveis de ambiente essenciais
     const requiredEnvVars = ['PORT', 'DB_USER', 'DB_PASS'];
     const missingVars = requiredEnvVars.filter(
       (varName) => !process.env[varName],
