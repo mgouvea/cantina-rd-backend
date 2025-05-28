@@ -14,6 +14,7 @@ import { InvoiceModule } from './modules/invoice/invoice.module';
 import { WhatsAppModule } from './modules/whatsapp/whatsapp.module';
 import { VisitorsModule } from './modules/visitors/visitors.module';
 import { OrdersVisitorsModule } from './modules/orders-visitors/orders-visitors.module';
+import { BucketModule } from './shared/bucket/bucket.module';
 
 @Module({
   imports: [
@@ -22,9 +23,32 @@ import { OrdersVisitorsModule } from './modules/orders-visitors/orders-visitors.
       envFilePath: '.env',
     }),
     MongooseModule.forRootAsync({
-      useFactory: () => ({
-        uri: `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.ldjep.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`,
-      }),
+      useFactory: () => {
+        const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.twkwaw3.mongodb.net/cantina-rd?retryWrites=true&w=majority`;
+
+        return {
+          uri,
+          connectionFactory: (connection) => {
+            connection.on('connected', () => {
+              console.log('✅ MongoDB conectado com sucesso!');
+            });
+            connection.on('error', (error) => {
+              console.error('❌ Erro na conexão MongoDB:', error.message);
+            });
+            connection.on('disconnected', () => {
+              console.log('🔌 MongoDB desconectado');
+            });
+            return connection;
+          },
+          serverSelectionTimeoutMS: 10000,
+          socketTimeoutMS: 45000,
+          connectTimeoutMS: 10000,
+          maxPoolSize: 10,
+          minPoolSize: 2,
+          retryWrites: true,
+          retryReads: true,
+        };
+      },
     }),
     UsersModule,
     ProductsModule,
@@ -39,6 +63,7 @@ import { OrdersVisitorsModule } from './modules/orders-visitors/orders-visitors.
     WhatsAppModule,
     VisitorsModule,
     OrdersVisitorsModule,
+    BucketModule,
   ],
   controllers: [],
   providers: [],

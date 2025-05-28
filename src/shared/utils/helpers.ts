@@ -1,3 +1,5 @@
+import slugify from 'slugify';
+
 export const formatName = (fullName: string): string => {
   const names = fullName.split(' ');
   const firstName = names[0].charAt(0).toUpperCase() + names[0].slice(1);
@@ -19,3 +21,20 @@ export const formatDateTime = (date: Date): string => {
   const minutes = date.getMinutes().toString().padStart(2, '0');
   return `${day}/${month} às ${hours}:${minutes}`;
 };
+
+/**
+ * Formata uma data para o padrão DD/MM
+ * @param date Data a ser formatada
+ * @returns String formatada no padrão DD/MM
+ */
+export const formatDateShort = (date: Date): string => {
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  return `${day}/${month}`;
+};
+
+export const sanitizedName = (name: string): string =>
+  slugify(name, {
+    lower: true,
+    strict: true,
+  });

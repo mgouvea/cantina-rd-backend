@@ -1,4 +1,4 @@
 export type GroupFamilyUser = {
-    name: string,
-    userId: string
-}
+  name: string;
+  userId: string;
+};

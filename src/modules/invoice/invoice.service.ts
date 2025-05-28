@@ -11,6 +11,14 @@ import {
 } from './dto/create-invoice.dto';
 import { Order, OrderDocument } from '../orders/entities/order.entity';
 import { Payment, PaymentDocument } from '../payments/entities/payment.entity';
+import { ModuleRef } from '@nestjs/core';
+import { UsersService } from '../users/users.service';
+import { WhatsappService } from '../whatsapp/whatsapp.service';
+import {
+  GroupFamily,
+  GroupFamilyDocument,
+} from '../group-family/entities/group-family.entity';
+// import { InvoiceItem } from 'src/shared/types/invoice.types';
 
 @Injectable()
 export class InvoicesService {
@@ -23,6 +31,11 @@ export class InvoicesService {
 
     @InjectModel(Payment.name)
     private paymentModel: Model<PaymentDocument>,
+
+    @InjectModel(GroupFamily.name)
+    private groupFamilyModel: Model<GroupFamilyDocument>,
+
+    private moduleRef: ModuleRef,
   ) {}
 
   async create(
@@ -71,10 +84,24 @@ export class InvoicesService {
     startDate: Date,
     endDate: Date,
   ): Promise<InvoiceCreateResponse> {
+    // Garantir que as datas sejam objetos Date
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    // Ajustar a data de início para o início do dia (00:00:00)
+    start.setHours(0, 0, 0, 0);
+
+    // Ajustar a data de fim para o final do dia (23:59:59.999)
+    end.setHours(23, 59, 59, 999);
+
+    console.log(
+      `Buscando pedidos para o grupo ${groupFamilyId} no período de ${start.toISOString()} até ${end.toISOString()}`,
+    );
+
     const orders = await this.orderModel.find({
       groupFamilyId,
       invoiceId: { $exists: false },
-      createdAt: { $gte: startDate, $lte: endDate },
+      createdAt: { $gte: start, $lte: end },
     });
 
     if (orders.length === 0) {
@@ -107,6 +134,7 @@ export class InvoicesService {
       await this.invoiceModel.findByIdAndUpdate(openInvoice._id, {
         $inc: { totalAmount },
         $addToSet: { buyerIds: { $each: buyerIds } },
+        $set: { sentByWhatsapp: false }, // Redefinir para false pois a fatura foi modificada
       });
 
       await Promise.all(
@@ -130,12 +158,15 @@ export class InvoicesService {
           buyerIds: updatedInvoice.buyerIds,
           startDate: updatedInvoice.startDate,
           endDate: updatedInvoice.endDate,
+          sentByWhatsapp: updatedInvoice.sentByWhatsapp,
           totalAmount: updatedInvoice.totalAmount,
           status: updatedInvoice.status,
           createdAt: updatedInvoice.createdAt,
           orders: [],
           payments: [],
           consumoPorPessoa,
+          consumidoresNomes: {},
+          ownerName: '',
           remaining: updatedInvoice.totalAmount,
         },
         consumoPorPessoa,
@@ -149,6 +180,7 @@ export class InvoicesService {
       endDate,
       totalAmount,
       status: 'OPEN',
+      sentByWhatsapp: false,
       createdAt: new Date(),
     });
 
@@ -173,12 +205,15 @@ export class InvoicesService {
         buyerIds: newInvoice.buyerIds,
         startDate: newInvoice.startDate,
         endDate: newInvoice.endDate,
+        sentByWhatsapp: newInvoice.sentByWhatsapp,
         totalAmount: newInvoice.totalAmount,
         status: newInvoice.status,
         createdAt: newInvoice.createdAt,
         orders: [],
         payments: [],
         consumoPorPessoa,
+        consumidoresNomes: {},
+        ownerName: '',
         remaining: newInvoice.totalAmount,
       },
       consumoPorPessoa,
@@ -278,6 +313,7 @@ export class InvoicesService {
     }
 
     const results: FullInvoiceResponse[] = [];
+    const userService = this.moduleRef.get(UsersService, { strict: false });
 
     for (const invoice of invoicesRaw) {
       const ordersRaw = await this.orderModel
@@ -317,6 +353,34 @@ export class InvoicesService {
         });
       }
 
+      // Buscar o grupo familiar para obter o responsável
+      const groupFamily = await this.groupFamilyModel.findById(
+        invoice.groupFamilyId,
+      );
+
+      let ownerName = '';
+      if (groupFamily) {
+        try {
+          const owner = await userService.findUserNameAndPhoneById(
+            groupFamily.owner,
+          );
+          ownerName = owner?.name || 'Responsável não encontrado';
+        } catch (error) {
+          ownerName = 'Responsável não encontrado';
+        }
+      }
+
+      // Buscar nomes dos compradores
+      const consumidoresNomes: Record<string, string> = {};
+      for (const buyerId of Object.keys(consumoPorPessoa)) {
+        try {
+          const buyer = await userService.findUserNameAndPhoneById(buyerId);
+          consumidoresNomes[buyerId] = buyer?.name || 'Usuário não encontrado';
+        } catch (error) {
+          consumidoresNomes[buyerId] = 'Usuário não encontrado';
+        }
+      }
+
       const totalPaid = payments.reduce((sum, p) => sum + p.amountPaid, 0);
       const remaining = invoice.totalAmount - totalPaid;
 
@@ -326,17 +390,111 @@ export class InvoicesService {
         buyerIds: invoice.buyerIds,
         startDate: invoice.startDate,
         endDate: invoice.endDate,
+        sentByWhatsapp: invoice.sentByWhatsapp,
         totalAmount: invoice.totalAmount,
         status: invoice.status,
         createdAt: invoice.createdAt,
         orders,
         payments,
         consumoPorPessoa,
+        consumidoresNomes,
+        ownerName,
         remaining,
       });
     }
 
     return results;
+  }
+
+  async sendInvoiceByWhatsapp(invoiceId: string) {
+    try {
+      // Buscar a fatura completa
+      const invoiceData = await this.getFullInvoices([invoiceId]);
+
+      if (!invoiceData || invoiceData.length === 0) {
+        throw new Error('Fatura não encontrada');
+      }
+
+      const invoice = invoiceData[0];
+
+      // Buscar o grupo familiar para obter o responsável
+      const groupFamily = await this.groupFamilyModel.findById(
+        invoice.groupFamilyId,
+      );
+
+      if (!groupFamily) {
+        throw new Error('Grupo familiar não encontrado');
+      }
+
+      // Buscar os dados do responsável do grupo
+      const userService = this.moduleRef.get(UsersService, { strict: false });
+      const owner = await userService.findUserNameAndPhoneById(
+        groupFamily.owner,
+      );
+
+      if (!owner) {
+        throw new Error('Responsável do grupo não encontrado');
+      }
+
+      if (!owner.telephone) {
+        throw new Error('Responsável do grupo não possui telefone cadastrado');
+      }
+
+      // Agrupar consumo por pessoa
+      const consumoPorPessoa: Record<string, any[]> = {};
+      for (const order of invoice.orders) {
+        const buyer = order.buyerId;
+        if (!consumoPorPessoa[buyer]) {
+          consumoPorPessoa[buyer] = [];
+        }
+        consumoPorPessoa[buyer].push({
+          date: order.createdAt,
+          products: order.products,
+          totalPrice: order.totalPrice,
+        });
+      }
+
+      // Buscar nomes dos compradores
+      const buyerNames: Record<string, string> = {};
+      for (const buyerId of Object.keys(consumoPorPessoa)) {
+        try {
+          const buyer = await userService.findUserNameAndPhoneById(buyerId);
+          buyerNames[buyerId] = buyer?.name || 'Usuário não encontrado';
+        } catch (error) {
+          buyerNames[buyerId] = 'Usuário não encontrado';
+        }
+      }
+
+      // Chamar o serviço de WhatsApp para enviar a mensagem
+      const whatsappService = this.moduleRef.get(WhatsappService, {
+        strict: false,
+      });
+
+      await whatsappService.sendInvoiceConfirmation(
+        owner.name,
+        owner.telephone,
+        invoice.startDate,
+        invoice.endDate,
+        invoice.totalAmount,
+        invoiceId,
+      );
+
+      // Atualizar a fatura para marcar como enviada por WhatsApp
+      await this.invoiceModel.findByIdAndUpdate(invoiceId, {
+        sentByWhatsapp: true,
+      });
+
+      return {
+        success: true,
+        message: `Fatura enviada com sucesso para ${owner.name} (${owner.telephone})`,
+      };
+    } catch (error) {
+      console.error('Erro ao enviar fatura por WhatsApp:', error);
+      return {
+        success: false,
+        message: `Erro ao enviar fatura: ${error.message}`,
+      };
+    }
   }
 
   async deleteInvoice(invoiceId: string) {

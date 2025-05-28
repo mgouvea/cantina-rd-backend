@@ -39,6 +39,11 @@ export class InvoicesController {
     return this.invoicesService.getUserStatement(buyerId);
   }
 
+  @Post(':id/send-whatsapp')
+  sendInvoiceByWhatsapp(@Param('id') invoiceId: string) {
+    return this.invoicesService.sendInvoiceByWhatsapp(invoiceId);
+  }
+
   @Delete(':id')
   deleteInvoice(@Param('id') invoiceId: string) {
     return this.invoicesService.deleteInvoice(invoiceId);

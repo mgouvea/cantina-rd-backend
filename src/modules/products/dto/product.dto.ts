@@ -7,7 +7,8 @@ export class ProductDto {
   price: number;
   categoryId: string;
   subcategoryId: string;
-  imageBase64: string;
+  urlImage: string;
+  publicIdImage: string;
   createdAt?: Date;
   updatedAt?: Date;
 }

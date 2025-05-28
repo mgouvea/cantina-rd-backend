@@ -9,6 +9,7 @@ import {
   Subcategory,
   SubcategorySchema,
 } from '../subcategories/entities/subcategory.entity';
+import { BucketModule } from 'src/shared/bucket/bucket.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import {
       { name: Subcategory.name, schema: SubcategorySchema },
     ]),
     SubcategoriesModule,
+    BucketModule,
   ],
   controllers: [CategoriesController],
   providers: [CategoriesService, SubcategoriesService],
