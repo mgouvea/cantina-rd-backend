@@ -40,10 +40,9 @@ import { BucketModule } from './shared/bucket/bucket.module';
             });
             return connection;
           },
-          // Configurações de timeout e retry mais adequadas para produção
-          serverSelectionTimeoutMS: 10000, // 10 segundos
-          socketTimeoutMS: 45000, // 45 segundos
-          connectTimeoutMS: 10000, // 10 segundos
+          serverSelectionTimeoutMS: 10000,
+          socketTimeoutMS: 45000,
+          connectTimeoutMS: 10000,
           maxPoolSize: 10,
           minPoolSize: 2,
           retryWrites: true,
