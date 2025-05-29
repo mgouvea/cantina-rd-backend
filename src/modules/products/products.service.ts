@@ -41,6 +41,7 @@ export class ProductsService {
       ...createProductDto,
       urlImage: imageUrl,
       publicIdImage: publicId,
+      isActive: true,
     });
     return product.save();
   }

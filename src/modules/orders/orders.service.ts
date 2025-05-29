@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateOrderDto, UpdateOrderDto } from './dto/create-order.dto';
 import { Order, OrderDocument } from './entities/order.entity';
 import { Model } from 'mongoose';
@@ -74,15 +74,27 @@ export class OrdersService {
     return ordersWithDetails;
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return this.orderModel.findById(id);
   }
 
-  update(id: number, updateOrderDto: UpdateOrderDto) {
+  update(id: string, updateOrderDto: UpdateOrderDto) {
     return this.orderModel.findByIdAndUpdate(id, updateOrderDto);
   }
 
-  remove(id: number) {
+  async remove(id: string) {
+    const order = await this.orderModel.findById(id);
+
+    if (!order) {
+      throw new Error('Pedido não encontrado');
+    }
+
+    if (order.invoiceId) {
+      throw new BadRequestException(
+        'Este pedido não pode ser excluído pois está associado a uma fatura',
+      );
+    }
+
     return this.orderModel.findByIdAndDelete(id);
   }
 }
