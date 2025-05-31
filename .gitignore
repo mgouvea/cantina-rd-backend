@@ -39,3 +39,4 @@ lerna-debug.log*
 /tokens
 /tokens/*
 .env
+dist
