@@ -23,10 +23,9 @@ export class Payment {
   isPartial: boolean;
 
   @Prop({ default: false })
-  isCredit: boolean; // Indica se é crédito pré-pago (sem invoice vinculada)
+  isCredit: boolean;
 
-  @Prop({ isRequired: true })
-  @IsDate()
+  @Prop({ default: Date.now })
   createdAt: Date;
 }
 

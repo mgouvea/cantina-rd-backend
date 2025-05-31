@@ -9,6 +9,7 @@ export class ProductDto {
   subcategoryId: string;
   urlImage: string;
   publicIdImage: string;
+  isActive: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }

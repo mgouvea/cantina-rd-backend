@@ -32,6 +32,9 @@ export class Product {
   @Prop({ required: true, unique: true })
   publicIdImage: string;
 
+  @Prop({ default: true })
+  isActive: boolean;
+
   @Prop({ required: false, default: Date.now })
   createdAt: Date;
 
