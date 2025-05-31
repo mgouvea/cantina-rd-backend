@@ -32,7 +32,7 @@ async function bootstrap() {
     app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
     app.useGlobalPipes(new ValidationPipe());
 
-    await app.listen(process.env.PORT);
+    await app.listen(process.env.PORT || 3333);
     console.log(`✅ Aplicação rodando na porta ${process.env.PORT}`);
   } catch (error) {
     console.error('❌ Erro ao iniciar aplicação:', error.message);
