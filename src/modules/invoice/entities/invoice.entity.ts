@@ -33,6 +33,10 @@ export class Invoice {
   @IsNumber()
   totalAmount: number;
 
+  @Prop({ isRequired: true, default: 0 })
+  @IsNumber()
+  paidAmount: number;
+
   @Prop({ isRequired: true, default: false })
   @IsBoolean()
   sentByWhatsapp: boolean;

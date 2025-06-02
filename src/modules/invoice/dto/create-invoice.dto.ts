@@ -76,6 +76,7 @@ export interface FullInvoiceResponse {
   startDate: Date;
   endDate: Date;
   totalAmount: number;
+  paidAmount: number;
   sentByWhatsapp: boolean;
   status: 'OPEN' | 'PARTIALLY_PAID' | 'PAID';
   createdAt: Date;

@@ -94,10 +94,6 @@ export class InvoicesService {
     // Ajustar a data de fim para o final do dia (23:59:59.999)
     end.setHours(23, 59, 59, 999);
 
-    console.log(
-      `Buscando pedidos para o grupo ${groupFamilyId} no período de ${start.toISOString()} até ${end.toISOString()}`,
-    );
-
     const orders = await this.orderModel.find({
       groupFamilyId,
       invoiceId: { $exists: false },
@@ -131,10 +127,20 @@ export class InvoicesService {
     });
 
     if (openInvoice) {
+      // Buscar pagamentos existentes para calcular o valor já pago
+      const payments = await this.paymentModel
+        .find({ invoiceId: openInvoice._id })
+        .lean();
+      const paidAmount = payments.reduce((sum, p) => sum + p.amountPaid, 0);
+
+      // Atualizar a fatura existente com o novo valor total e o valor já pago
       await this.invoiceModel.findByIdAndUpdate(openInvoice._id, {
         $inc: { totalAmount },
         $addToSet: { buyerIds: { $each: buyerIds } },
-        $set: { sentByWhatsapp: false }, // Redefinir para false pois a fatura foi modificada
+        $set: {
+          sentByWhatsapp: false, // Redefinir para false pois a fatura foi modificada
+          paidAmount: paidAmount, // Salvar o valor já pago
+        },
       });
 
       await Promise.all(
@@ -150,6 +156,9 @@ export class InvoicesService {
         .findById(openInvoice._id)
         .lean();
 
+      // Calcular o valor restante (total - pago)
+      const remaining = updatedInvoice.totalAmount - updatedInvoice.paidAmount;
+
       return {
         updated: true,
         invoice: {
@@ -160,6 +169,7 @@ export class InvoicesService {
           endDate: updatedInvoice.endDate,
           sentByWhatsapp: updatedInvoice.sentByWhatsapp,
           totalAmount: updatedInvoice.totalAmount,
+          paidAmount: updatedInvoice.paidAmount,
           status: updatedInvoice.status,
           createdAt: updatedInvoice.createdAt,
           orders: [],
@@ -167,7 +177,7 @@ export class InvoicesService {
           consumoPorPessoa,
           consumidoresNomes: {},
           ownerName: '',
-          remaining: updatedInvoice.totalAmount,
+          remaining: remaining,
         },
         consumoPorPessoa,
       };
@@ -179,6 +189,7 @@ export class InvoicesService {
       startDate,
       endDate,
       totalAmount,
+      paidAmount: 0, // Nova fatura, nenhum pagamento realizado ainda
       status: 'OPEN',
       sentByWhatsapp: false,
       createdAt: new Date(),
@@ -207,6 +218,7 @@ export class InvoicesService {
         endDate: newInvoice.endDate,
         sentByWhatsapp: newInvoice.sentByWhatsapp,
         totalAmount: newInvoice.totalAmount,
+        paidAmount: newInvoice.paidAmount,
         status: newInvoice.status,
         createdAt: newInvoice.createdAt,
         orders: [],
@@ -214,7 +226,7 @@ export class InvoicesService {
         consumoPorPessoa,
         consumidoresNomes: {},
         ownerName: '',
-        remaining: newInvoice.totalAmount,
+        remaining: newInvoice.totalAmount, // Nova fatura, valor restante = valor total
       },
       consumoPorPessoa,
     };
@@ -392,6 +404,7 @@ export class InvoicesService {
         endDate: invoice.endDate,
         sentByWhatsapp: invoice.sentByWhatsapp,
         totalAmount: invoice.totalAmount,
+        paidAmount: totalPaid, // Adicionar o valor pago
         status: invoice.status,
         createdAt: invoice.createdAt,
         orders,
@@ -477,6 +490,8 @@ export class InvoicesService {
         invoice.endDate,
         invoice.totalAmount,
         invoiceId,
+        invoice.paidAmount,
+        invoice.remaining,
       );
 
       // Atualizar a fatura para marcar como enviada por WhatsApp
