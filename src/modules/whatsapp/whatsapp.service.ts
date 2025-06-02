@@ -87,6 +87,8 @@ export class WhatsappService implements OnModuleInit {
     endDate: Date,
     totalAmount: number,
     invoiceId: string,
+    paidAmount = 0,
+    remaining = null,
   ) {
     try {
       const message = this.generateInvoiceMessage(
@@ -95,6 +97,8 @@ export class WhatsappService implements OnModuleInit {
         endDate,
         totalAmount,
         invoiceId,
+        paidAmount,
+        remaining,
       );
 
       const formattedNumber = this.formatPhoneNumber(phoneNumber);
@@ -165,19 +169,36 @@ export class WhatsappService implements OnModuleInit {
     endDate: Date,
     totalAmount: number,
     invoiceId: string,
+    paidAmount = 0,
+    remaining = null,
   ): string {
+    // Se o valor restante não foi fornecido, calculamos como totalAmount - paidAmount
+    const remainingAmount =
+      remaining !== null ? remaining : totalAmount - paidAmount;
+
+    // Preparar mensagem sobre pagamento parcial, se aplicável
+    let paymentInfo = '';
+    if (paidAmount > 0) {
+      paymentInfo = `
+    💵 *Valor total:* R$ ${totalAmount}
+    ✅ *Já pago:* R$ ${paidAmount}
+    💰 *Valor a pagar:* R$ ${remainingAmount}`;
+    } else {
+      paymentInfo = `
+    💰 *Valor a pagar:* R$ ${remainingAmount}`;
+    }
+
     return `📄 *Fatura - Cantina RD*
 
     *Olá, ${formatName(groupFamilyOwnerName)}! Sua fatura foi gerada:*
-
-    💰 *Valor:* R$ ${totalAmount}
+${paymentInfo}
     🗓️ *Período:* ${formatDateShort(startDate)} a ${formatDateShort(endDate)}
     💳 *PIX:* tes.realezadivina@udv.org.br
     📌 Envie o comprovante para processarmos o pagamento.
 
     🔗 *Veja o detalhamento da fatura no link abaixo:*
 
-https://painel.cantina-rd.com/fatura-cliente/${invoiceId}
+https://cantina-rd.shop/admin/fatura-cliente/${invoiceId}
 
     Grato! 🙌`;
   }
