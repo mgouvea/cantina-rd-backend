@@ -5,7 +5,6 @@ export class CreatePaymentDto {
   amountPaid: number;
   paymentDate: Date;
   isPartial: boolean;
-  isCredit: boolean;
   createdAt: Date;
 }
 

@@ -2,6 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Invoice, InvoiceDocument } from './entities/invoice.entity';
+import { CreditService } from '../credit/credit.service';
 import {
   ConsumoItem,
   CreateInvoiceDto,
@@ -36,6 +37,7 @@ export class InvoicesService {
     private groupFamilyModel: Model<GroupFamilyDocument>,
 
     private moduleRef: ModuleRef,
+    private creditService: CreditService,
   ) {}
 
   async create(
@@ -183,14 +185,49 @@ export class InvoicesService {
       };
     }
 
+    // Verificar se o grupo familiar tem crédito disponível
+    const familyCredits = await this.creditService.findByGroupFamilyId(
+      groupFamilyId,
+    );
+    let appliedCredit = 0;
+    const originalAmount = totalAmount;
+    let creditId = null;
+    let finalTotalAmount = totalAmount;
+
+    // Se houver crédito disponível, aplicar à fatura
+    if (familyCredits && familyCredits.length > 0) {
+      // Pegar o primeiro crédito disponível com valor > 0
+      const availableCredit = familyCredits.find((credit) => credit.amount > 0);
+
+      if (availableCredit) {
+        // Calcular quanto do crédito será aplicado
+        appliedCredit = Math.min(availableCredit.amount, totalAmount);
+
+        // Atualizar o valor total da fatura após aplicação do crédito
+        finalTotalAmount = totalAmount - appliedCredit;
+
+        // Atualizar o valor do crédito restante
+        const remainingCredit = availableCredit.amount - appliedCredit;
+        await this.creditService.update(availableCredit._id.toString(), {
+          amount: remainingCredit,
+          updatedAt: new Date(),
+        });
+
+        creditId = availableCredit._id;
+      }
+    }
+
     const createdInvoice = await this.invoiceModel.create({
       groupFamilyId,
       buyerIds,
       startDate,
       endDate,
-      totalAmount,
+      totalAmount: finalTotalAmount,
+      originalAmount,
+      appliedCredit,
+      creditId,
       paidAmount: 0, // Nova fatura, nenhum pagamento realizado ainda
-      status: 'OPEN',
+      status: finalTotalAmount === 0 ? 'PAID' : 'OPEN', // Se o crédito cobrir toda a fatura, marcar como paga
       sentByWhatsapp: false,
       createdAt: new Date(),
     });
@@ -218,6 +255,9 @@ export class InvoicesService {
         endDate: newInvoice.endDate,
         sentByWhatsapp: newInvoice.sentByWhatsapp,
         totalAmount: newInvoice.totalAmount,
+        originalAmount: newInvoice.originalAmount,
+        appliedCredit: newInvoice.appliedCredit,
+        creditId: newInvoice.creditId,
         paidAmount: newInvoice.paidAmount,
         status: newInvoice.status,
         createdAt: newInvoice.createdAt,
@@ -404,6 +444,9 @@ export class InvoicesService {
         endDate: invoice.endDate,
         sentByWhatsapp: invoice.sentByWhatsapp,
         totalAmount: invoice.totalAmount,
+        originalAmount: invoice.originalAmount,
+        appliedCredit: invoice.appliedCredit,
+        creditId: invoice.creditId,
         paidAmount: totalPaid, // Adicionar o valor pago
         status: invoice.status,
         createdAt: invoice.createdAt,
@@ -492,6 +535,8 @@ export class InvoicesService {
         invoiceId,
         invoice.paidAmount,
         invoice.remaining,
+        invoice.appliedCredit,
+        invoice.originalAmount,
       );
 
       // Atualizar a fatura para marcar como enviada por WhatsApp

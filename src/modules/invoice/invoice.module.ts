@@ -8,6 +8,7 @@ import { PaymentsModule } from '../payments/payments.module';
 import { GroupFamilyModule } from '../group-family/group-family.module';
 import { WhatsAppModule } from '../whatsapp/whatsapp.module';
 import { UsersModule } from '../users/users.module';
+import { CreditModule } from '../credit/credit.module';
 import {
   GroupFamily,
   GroupFamilySchema,
@@ -28,6 +29,7 @@ import { Payment, PaymentSchema } from '../payments/entities/payment.entity';
     GroupFamilyModule,
     WhatsAppModule,
     UsersModule,
+    CreditModule,
   ],
   controllers: [InvoicesController],
   providers: [InvoicesService],

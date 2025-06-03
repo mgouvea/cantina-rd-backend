@@ -89,6 +89,8 @@ export class WhatsappService implements OnModuleInit {
     invoiceId: string,
     paidAmount = 0,
     remaining = null,
+    appliedCredit = 0,
+    originalAmount = null,
   ) {
     try {
       const message = this.generateInvoiceMessage(
@@ -99,6 +101,8 @@ export class WhatsappService implements OnModuleInit {
         invoiceId,
         paidAmount,
         remaining,
+        appliedCredit,
+        originalAmount,
       );
 
       const formattedNumber = this.formatPhoneNumber(phoneNumber);
@@ -171,14 +175,31 @@ export class WhatsappService implements OnModuleInit {
     invoiceId: string,
     paidAmount = 0,
     remaining = null,
+    appliedCredit = 0,
+    originalAmount = null,
   ): string {
     // Se o valor restante não foi fornecido, calculamos como totalAmount - paidAmount
     const remainingAmount =
       remaining !== null ? remaining : totalAmount - paidAmount;
 
-    // Preparar mensagem sobre pagamento parcial, se aplicável
+    // Preparar mensagem sobre pagamento parcial e crédito aplicado, se aplicável
     let paymentInfo = '';
-    if (paidAmount > 0) {
+    // Se temos um valor original diferente do total, significa que foi aplicado crédito
+    if (originalAmount !== null && appliedCredit > 0) {
+      if (paidAmount > 0) {
+        paymentInfo = `
+    💵 *Valor original:* R$ ${originalAmount}
+    🔄 *Crédito aplicado:* R$ ${appliedCredit}
+    💵 *Valor após crédito:* R$ ${totalAmount}
+    ✅ *Já pago:* R$ ${paidAmount}
+    💰 *Valor a pagar:* R$ ${remainingAmount}`;
+      } else {
+        paymentInfo = `
+    💵 *Valor original:* R$ ${originalAmount}
+    🔄 *Crédito aplicado:* R$ ${appliedCredit}
+    💰 *Valor a pagar:* R$ ${remainingAmount}`;
+      }
+    } else if (paidAmount > 0) {
       paymentInfo = `
     💵 *Valor total:* R$ ${totalAmount}
     ✅ *Já pago:* R$ ${paidAmount}
