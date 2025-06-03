@@ -15,6 +15,7 @@ import { WhatsAppModule } from './modules/whatsapp/whatsapp.module';
 import { VisitorsModule } from './modules/visitors/visitors.module';
 import { OrdersVisitorsModule } from './modules/orders-visitors/orders-visitors.module';
 import { BucketModule } from './shared/bucket/bucket.module';
+import { CreditModule } from './modules/credit/credit.module';
 
 @Module({
   imports: [
@@ -24,8 +25,8 @@ import { BucketModule } from './shared/bucket/bucket.module';
     }),
     MongooseModule.forRootAsync({
       useFactory: () => {
-        // const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.twkwaw3.mongodb.net/cantina-rd?retryWrites=true&w=majority`;
-        const uri = `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}:${process.env.DB_PORT}/cantina-rd?retryWrites=true&w=majority`;
+        const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.twkwaw3.mongodb.net/cantina-rd?retryWrites=true&w=majority`;
+        // const uri = `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}:${process.env.DB_PORT}/cantina-rd?retryWrites=true&w=majority`;
 
         return {
           uri,
@@ -65,6 +66,7 @@ import { BucketModule } from './shared/bucket/bucket.module';
     VisitorsModule,
     OrdersVisitorsModule,
     BucketModule,
+    CreditModule,
   ],
   controllers: [],
   providers: [],

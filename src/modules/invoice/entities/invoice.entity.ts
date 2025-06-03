@@ -33,6 +33,18 @@ export class Invoice {
   @IsNumber()
   totalAmount: number;
 
+  @Prop({ default: null })
+  @IsNumber()
+  originalAmount: number;
+
+  @Prop({ default: 0 })
+  @IsNumber()
+  appliedCredit: number;
+
+  @Prop({ default: null })
+  @IsString()
+  creditId: string;
+
   @Prop({ isRequired: true, default: 0 })
   @IsNumber()
   paidAmount: number;

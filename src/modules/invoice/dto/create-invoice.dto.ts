@@ -76,6 +76,9 @@ export interface FullInvoiceResponse {
   startDate: Date;
   endDate: Date;
   totalAmount: number;
+  originalAmount?: number;
+  appliedCredit?: number;
+  creditId?: string;
   paidAmount: number;
   sentByWhatsapp: boolean;
   status: 'OPEN' | 'PARTIALLY_PAID' | 'PAID';
