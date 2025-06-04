@@ -9,7 +9,7 @@ export class CreateVisitorDto {
   telephone: string;
 
   @IsString()
-  churchCore: string; // núcleo
+  churchCore?: string; // núcleo
 
   @IsOptional()
   @IsDate()
