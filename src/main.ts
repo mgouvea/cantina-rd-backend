@@ -22,7 +22,17 @@ async function bootstrap() {
 
     app.enableCors({
       origin: (origin, callback) => {
-        callback(null, true);
+        const allowedOrigins = [
+          'http://localhost:3000',
+          'http://localhost:3001',
+          'https://cantina-rd.shop',
+          'https://admin.cantina-rd.shop',
+        ];
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error('Origem não permitida pelo CORS: ' + origin));
+        }
       },
       methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
       credentials: true,
