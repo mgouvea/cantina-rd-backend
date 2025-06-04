@@ -219,7 +219,7 @@ ${paymentInfo}
 
     🔗 *Veja o detalhamento da fatura no link abaixo:*
 
-https://cantina-rd.shop/admin/fatura-cliente/${invoiceId}
+https://admin.cantina-rd.shop/fatura-cliente/${invoiceId}
 
     Grato! 🙌`;
   }
