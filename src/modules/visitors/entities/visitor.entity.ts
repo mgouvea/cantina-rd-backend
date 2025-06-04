@@ -11,8 +11,8 @@ export class Visitor {
   @Prop({ required: true })
   telephone: string;
 
-  @Prop({ required: true })
-  churchCore: string; // núcleo
+  @Prop({ required: false })
+  churchCore?: string; // núcleo
 
   @Prop({ default: 1, required: false })
   visitCount: number;
