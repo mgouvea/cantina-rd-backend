@@ -14,7 +14,6 @@ import {
 export class WhatsappService implements OnModuleInit {
   private client: Whatsapp;
   // Número que escaneou o QR code (seu número)
-  private readonly ADMIN_PHONE = '61982107187';
   private qrCode: string = null;
   private qrCodeBase64: string = null;
   private readonly SESSION_NAME = 'sessionName';
@@ -45,6 +44,7 @@ export class WhatsappService implements OnModuleInit {
         headless: true,
         useChrome: false,
         debug: false,
+        browserArgs: ['--no-sandbox', '--disable-setuid-sandbox'],
       });
 
       console.log('WhatsApp service inicializado com sucesso');
