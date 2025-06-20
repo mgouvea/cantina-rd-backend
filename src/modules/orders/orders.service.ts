@@ -52,21 +52,43 @@ export class OrdersService {
 
     const ordersWithDetails = await Promise.all(
       orders.map(async (order) => {
-        // Buscar o nome do comprador
-        const user = await this.userService.findUserNameAndPhoneById(
-          order.buyerId,
-        );
+        let userName = '';
 
-        // Buscar o nome do grupo familiar
-        const groupFamilyName =
-          await this.groupFamilyService.findGroupFamilyName(
-            order.groupFamilyId,
-          );
+        // Buscar o nome do comprador apenas se buyerId for válido
+        if (order.buyerId && order.buyerId.trim() !== '') {
+          try {
+            const user = await this.userService.findUserNameAndPhoneById(
+              order.buyerId,
+            );
+            userName = user?.name || '';
+          } catch (error) {
+            console.error(
+              `Erro ao buscar usuário com ID ${order.buyerId}:`,
+              error.message,
+            );
+          }
+        }
+
+        // Buscar o nome do grupo familiar apenas se groupFamilyId for válido
+        let groupFamilyName = '';
+        if (order.groupFamilyId && order.groupFamilyId.trim() !== '') {
+          try {
+            groupFamilyName =
+              (await this.groupFamilyService.findGroupFamilyName(
+                order.groupFamilyId,
+              )) || '';
+          } catch (error) {
+            console.error(
+              `Erro ao buscar grupo familiar com ID ${order.groupFamilyId}:`,
+              error.message,
+            );
+          }
+        }
 
         return {
           ...order.toObject(),
-          buyerName: user?.name || '',
-          groupFamilyName: groupFamilyName || '',
+          buyerName: userName,
+          groupFamilyName: groupFamilyName,
         };
       }),
     );
