@@ -44,7 +44,9 @@ export class WhatsappService implements OnModuleInit {
         headless: true,
         useChrome: false,
         debug: false,
-        browserArgs: ['--no-sandbox', '--disable-setuid-sandbox'],
+        puppeteerOptions: {
+          args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        },
       });
 
       console.log('WhatsApp service inicializado com sucesso');
