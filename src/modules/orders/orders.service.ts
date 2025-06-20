@@ -18,9 +18,7 @@ export class OrdersService {
   ) {}
 
   async create(createOrderDto: CreateOrderDto) {
-    const createdAt = new Date(
-      new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
-    );
+    const createdAt = new Date();
 
     // 1. Cria o pedido
     const order = await this.orderModel.create({
@@ -36,14 +34,21 @@ export class OrdersService {
     const buyerPhone = user.telephone;
     const orderTime = createdAt;
 
-    // 3. Envia a mensagem se tiver número
+    // 3. Tenta enviar a mensagem se tiver número, mas não impede a criação do pedido se falhar
     if (buyerPhone) {
-      await this.whatsappService.sendPurchaseConfirmation(
-        buyerName,
-        buyerPhone,
-        orderTime,
-        createOrderDto.products,
-      );
+      try {
+        await this.whatsappService.sendPurchaseConfirmation(
+          buyerName,
+          buyerPhone,
+          orderTime,
+          createOrderDto.products,
+        );
+      } catch (error) {
+        console.error(
+          'Erro ao enviar mensagem de confirmação de compra:',
+          error.message,
+        );
+      }
     }
 
     return order;
