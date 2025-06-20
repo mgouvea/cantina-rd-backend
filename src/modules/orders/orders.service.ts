@@ -18,9 +18,7 @@ export class OrdersService {
   ) {}
 
   async create(createOrderDto: CreateOrderDto) {
-    const createdAt = new Date(
-      new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
-    );
+    const createdAt = new Date();
 
     // 1. Cria o pedido
     const order = await this.orderModel.create({
