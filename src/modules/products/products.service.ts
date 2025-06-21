@@ -69,17 +69,13 @@ export class ProductsService {
   }
 
   async findByCategory(categoryId: string) {
-    const product = await this.productModel
-      .find({ categoryId: categoryId })
+    const products = await this.productModel
+      .find({ categoryId: categoryId, isActive: true })
       .populate('categoryId')
       .populate('subcategoryId')
       .exec();
 
-    if (!product) {
-      throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
-    }
-
-    return product;
+    return products;
   }
 
   async update(id: string, updateProductDto: UpdateProductDto) {

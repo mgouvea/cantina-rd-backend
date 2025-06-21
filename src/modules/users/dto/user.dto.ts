@@ -6,6 +6,7 @@ export class CreateUserDto {
   telephone?: string;
   groupFamily: string;
   urlImage: string;
+  publicIdImage: string;
   isChild?: boolean;
   createdAt: Date;
   updatedAt?: Date;
