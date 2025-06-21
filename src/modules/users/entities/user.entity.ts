@@ -21,6 +21,9 @@ export class User extends Document {
   @Prop({ required: true })
   urlImage: string;
 
+  @Prop({ required: true })
+  publicIdImage: string;
+
   @Prop({ required: false })
   isChild: boolean;
 

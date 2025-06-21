@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   forwardRef,
   HttpException,
   HttpStatus,
@@ -26,6 +27,18 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto) {
+    const publicId = `users/${sanitizedName(createUserDto.name)}`;
+
+    const existingUser = await this.userModel.findOne({
+      publicIdImage: publicId,
+    });
+
+    if (existingUser) {
+      throw new ConflictException(
+        'Já existe um usuário com esse nome (imagem).',
+      );
+    }
+
     const imageUrl = await this.bucketService.uploadBase64Image(
       createUserDto.urlImage,
       'users',
@@ -35,8 +48,8 @@ export class UsersService {
     const user = new this.userModel({
       ...createUserDto,
       name: createUserDto.name.toLowerCase(),
-      createdAt: new Date(),
       urlImage: imageUrl,
+      publicIdImage: publicId,
     });
     return user.save();
   }
@@ -109,13 +122,49 @@ export class UsersService {
     } com sucesso`;
   }
 
-  update(id: string, updateUserDto: UpdateUserDto) {
-    return this.userModel.findByIdAndUpdate(id, updateUserDto, {
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    const user = await this.userModel.findById(id);
+
+    if (!user) {
+      throw new HttpException('Usuário não encontrado', HttpStatus.NOT_FOUND);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updateData: any = { ...updateUserDto };
+
+    if (
+      updateUserDto.urlImage &&
+      updateUserDto.urlImage.startsWith('data:image/')
+    ) {
+      if (user.publicIdImage) {
+        await this.bucketService.deleteImageByName(user.publicIdImage);
+      }
+
+      const nameForImage = updateUserDto.name
+        ? sanitizedName(updateUserDto.name)
+        : sanitizedName(user.name);
+
+      const imageUrl = await this.bucketService.uploadBase64Image(
+        updateUserDto.urlImage,
+        'users',
+        nameForImage,
+      );
+
+      updateData.urlImage = imageUrl;
+      updateData.publicIdImage = `users/${nameForImage}`;
+    }
+
+    if (updateUserDto.name) {
+      updateData.name = updateUserDto.name.toLowerCase();
+    }
+
+    return this.userModel.findByIdAndUpdate(id, updateData, {
       new: true,
     });
   }
 
   async remove(id: string) {
+    const user = await this.userModel.findById(id);
     const admin = await this.adminService.findByUserId(id);
 
     if (admin && admin.length > 0) {
@@ -123,7 +172,7 @@ export class UsersService {
     }
 
     await this.groupFamilyService.removeMembersFromGroupFamily(id);
-
+    await this.bucketService.deleteImageByName(user.publicIdImage);
     return this.userModel.findByIdAndDelete(id);
   }
 }
