@@ -3,17 +3,6 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import * as bodyParser from 'body-parser';
 
-import puppeteer from 'puppeteer';
-
-// ✅ Substitui launch para sempre usar --no-sandbox
-(puppeteer as any).originalLaunch = puppeteer.launch.bind(puppeteer);
-puppeteer.launch = (options = {}) => {
-  return (puppeteer as any).originalLaunch({
-    ...options,
-    args: ['--no-sandbox', '--disable-setuid-sandbox', ...(options.args || [])],
-  });
-};
-
 async function bootstrap() {
   try {
     const requiredEnvVars = ['PORT', 'DB_USER', 'DB_PASS'];
