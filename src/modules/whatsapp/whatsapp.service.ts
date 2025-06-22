@@ -43,7 +43,10 @@ export class WhatsappService implements OnModuleInit {
         createPathFileToken: true,
         headless: true,
         useChrome: false,
+        autoClose: 0,
+        updatesLog: true,
         debug: false,
+        browserArgs: ['--no-sandbox', '--disable-setuid-sandbox'],
         puppeteerOptions: {
           args: ['--no-sandbox', '--disable-setuid-sandbox'],
         },
@@ -70,7 +73,8 @@ export class WhatsappService implements OnModuleInit {
 
       const formattedNumber = this.formatPhoneNumber(phoneNumber);
 
-      if (!this.client || !this.client.isConnected()) {
+      if (!this.client || !(await this.client.isConnected())) {
+        console.warn('Sessão desconectada – tentando reconectar…');
         await this.reconnect();
       }
 
@@ -109,7 +113,8 @@ export class WhatsappService implements OnModuleInit {
 
       const formattedNumber = this.formatPhoneNumber(phoneNumber);
 
-      if (!this.client || !this.client.isConnected()) {
+      if (!this.client || !(await this.client.isConnected())) {
+        console.warn('Sessão desconectada – tentando reconectar…');
         await this.reconnect();
       }
 
