@@ -26,29 +26,44 @@ export class OrdersService {
       createdAt,
     });
 
-    // 2. Busca nome e telefone do comprador — você pode ajustar para buscar no banco
-    const user = await this.userService.findUserNameAndPhoneById(
-      createOrderDto.buyerId,
-    );
+    // 2. Busca informações completas do comprador
+    const user = await this.userService.findOne(createOrderDto.buyerId);
     const buyerName = user.name;
     const buyerPhone = user.telephone;
     const orderTime = createdAt;
+    const isChild = user.isChild;
 
-    // 3. Tenta enviar a mensagem se tiver número, mas não impede a criação do pedido se falhar
-    if (buyerPhone) {
-      try {
+    try {
+      if (isChild) {
+        if (user.groupFamily) {
+          const groupFamily = await this.groupFamilyService.findOne(
+            user.groupFamily.toString(),
+          );
+          if (groupFamily && groupFamily.owner) {
+            const owner = await this.userService.findOne(groupFamily.owner);
+            if (owner && owner.telephone) {
+              await this.whatsappService.sendPurchaseConfirmation(
+                buyerName,
+                owner.telephone,
+                orderTime,
+                createOrderDto.products,
+              );
+            }
+          }
+        }
+      } else if (buyerPhone) {
         await this.whatsappService.sendPurchaseConfirmation(
           buyerName,
           buyerPhone,
           orderTime,
           createOrderDto.products,
         );
-      } catch (error) {
-        console.error(
-          'Erro ao enviar mensagem de confirmação de compra:',
-          error.message,
-        );
       }
+    } catch (error) {
+      console.error(
+        'Erro ao enviar mensagem de confirmação de compra:',
+        error.message,
+      );
     }
 
     return order;
