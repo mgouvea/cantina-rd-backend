@@ -160,8 +160,8 @@ export class WhatsappService implements OnModuleInit {
       .join('\n');
 
     return `📢 *Notificação de compra* - ${formatDateTime(orderTime)}
-  \n👤 ${formatName(buyerName)}
-  \n🛍️ Itens:
+  👤 ${formatName(buyerName)}
+  🛍️ Itens:
   ${productsList}`;
   }
 
