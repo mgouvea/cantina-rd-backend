@@ -165,30 +165,6 @@ export class WhatsappService implements OnModuleInit {
   ${productsList}`;
   }
 
-  // private generatePurchaseMessage(
-  //   buyerName: string,
-  //   orderTime: Date,
-  //   products: ProductItem[],
-  // ): string {
-  //   const productsList = products
-  //     .map((p) => `- ${p.quantity}x ${p.name} - R$${p.price}`)
-  //     .join('\n');
-
-  //   const total = products.reduce(
-  //     (total, p) => total + p.price * p.quantity,
-  //     0,
-  //   );
-
-  //   return `🛒 *Cantina RD*
-  //    \n*Olá, ${formatName(
-  //      buyerName,
-  //    )}! Compra realizada no valor de R$ ${total} ${
-  //     total == 1 ? 'real' : 'reais'
-  //   }*\n\n🗓️ Data e Hora: ${formatDateTime(
-  //     orderTime,
-  //   )}\n\nProdutos:\n${productsList}\n\nGrato por sua compra! 🙌`;
-  // }
-
   private generateInvoiceMessage(
     groupFamilyOwnerName: string,
     startDate: Date,
