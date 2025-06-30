@@ -51,6 +51,7 @@ export class ProductsService {
       .find()
       .populate('categoryId')
       .populate('subcategoryId')
+      .sort({ name: 1 })
       .exec();
   }
 

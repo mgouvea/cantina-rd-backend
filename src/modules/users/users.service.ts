@@ -55,7 +55,7 @@ export class UsersService {
   }
 
   async findAll() {
-    const users = await this.userModel.find();
+    const users = await this.userModel.find().sort({ name: 1 });
 
     const usersWithGroupFamily = await Promise.all(
       users.map(async (user) => {
