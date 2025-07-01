@@ -16,6 +16,7 @@ import { VisitorsModule } from './modules/visitors/visitors.module';
 import { OrdersVisitorsModule } from './modules/orders-visitors/orders-visitors.module';
 import { BucketModule } from './shared/bucket/bucket.module';
 import { CreditModule } from './modules/credit/credit.module';
+import { DebitModule } from './modules/debit/debit.module';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { CreditModule } from './modules/credit/credit.module';
     OrdersVisitorsModule,
     BucketModule,
     CreditModule,
+    DebitModule,
   ],
   controllers: [],
   providers: [],
