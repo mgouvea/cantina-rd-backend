@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Invoice, InvoiceDocument } from './entities/invoice.entity';
 import { CreditService } from '../credit/credit.service';
+import { DebitService } from '../debit/debit.service';
 import {
   ConsumoItem,
   CreateInvoiceDto,
@@ -38,6 +39,7 @@ export class InvoicesService {
 
     private moduleRef: ModuleRef,
     private creditService: CreditService,
+    private debitService: DebitService,
   ) {}
 
   async create(
@@ -185,14 +187,39 @@ export class InvoicesService {
       };
     }
 
+    // Verificar se o grupo familiar tem débitos anteriores não incluídos em faturas
+    const familyDebits = await this.debitService.findByGroupFamilyId(
+      groupFamilyId,
+    );
+    let debitAmount = 0;
+    let debitIds = [];
+
+    // Processar débitos não incluídos em faturas
+    if (familyDebits && familyDebits.length > 0) {
+      const pendingDebits = familyDebits.filter(
+        (debit) => debit.includedInInvoice === false,
+      );
+
+      if (pendingDebits.length > 0) {
+        // Somar os valores dos débitos pendentes
+        debitAmount = pendingDebits.reduce(
+          (sum, debit) => sum + debit.amount,
+          0,
+        );
+
+        // Guardar os IDs dos débitos para atualização posterior
+        debitIds = pendingDebits.map((debit) => debit._id.toString());
+      }
+    }
+
     // Verificar se o grupo familiar tem crédito disponível
     const familyCredits = await this.creditService.findByGroupFamilyId(
       groupFamilyId,
     );
     let appliedCredit = 0;
-    const originalAmount = totalAmount;
+    const originalAmount = totalAmount + debitAmount; // Adicionar débitos ao valor original
     let creditId = null;
-    let finalTotalAmount = totalAmount;
+    let finalTotalAmount = totalAmount + debitAmount; // Adicionar débitos ao valor final
 
     // Se houver crédito disponível, aplicar à fatura
     if (familyCredits && familyCredits.length > 0) {
@@ -226,6 +253,7 @@ export class InvoicesService {
       originalAmount,
       appliedCredit,
       creditId,
+      debitAmount: debitAmount > 0 ? debitAmount : undefined, // Adicionar valor de débitos se existir
       paidAmount: 0, // Nova fatura, nenhum pagamento realizado ainda
       status: finalTotalAmount === 0 ? 'PAID' : 'OPEN', // Se o crédito cobrir toda a fatura, marcar como paga
       sentByWhatsapp: false,
@@ -236,6 +264,7 @@ export class InvoicesService {
       .findById(createdInvoice._id)
       .lean();
 
+    // Atualizar os pedidos para associá-los à fatura
     await Promise.all(
       orders.map((order) =>
         this.orderModel.updateOne(
@@ -244,6 +273,14 @@ export class InvoicesService {
         ),
       ),
     );
+    // Atualizar os débitos para marcar como incluídos na fatura
+    if (debitIds.length > 0) {
+      await Promise.all(
+        debitIds.map((debitId) =>
+          this.debitService.update(debitId, { includedInInvoice: true }),
+        ),
+      );
+    }
 
     return {
       created: true,
@@ -258,6 +295,7 @@ export class InvoicesService {
         originalAmount: newInvoice.originalAmount,
         appliedCredit: newInvoice.appliedCredit,
         creditId: newInvoice.creditId,
+        debitAmount: newInvoice.debitAmount, // Incluir o valor de débitos anteriores
         paidAmount: newInvoice.paidAmount,
         status: newInvoice.status,
         createdAt: newInvoice.createdAt,
@@ -537,6 +575,7 @@ export class InvoicesService {
         invoice.remaining,
         invoice.appliedCredit,
         invoice.originalAmount,
+        invoice.debitAmount, // Incluir o valor de débitos anteriores
       );
 
       // Atualizar a fatura para marcar como enviada por WhatsApp

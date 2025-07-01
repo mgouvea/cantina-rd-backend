@@ -25,17 +25,21 @@ export class DebitService {
     return this.debitModel.find().lean();
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return this.debitModel.findById(id).lean();
   }
 
-  update(id: number, updateDebitDto: UpdateDebitDto) {
+  findByGroupFamilyId(groupFamilyId: string) {
+    return this.debitModel.find({ groupFamilyId }).lean();
+  }
+
+  update(id: string, updateDebitDto: UpdateDebitDto) {
     return this.debitModel
       .findByIdAndUpdate(id, updateDebitDto, { new: true })
       .lean();
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return this.debitModel.findByIdAndDelete(id).lean();
   }
 }

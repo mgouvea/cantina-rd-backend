@@ -26,16 +26,16 @@ export class DebitController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.debitService.findOne(+id);
+    return this.debitService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateDebitDto: UpdateDebitDto) {
-    return this.debitService.update(+id, updateDebitDto);
+    return this.debitService.update(id, updateDebitDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.debitService.remove(+id);
+    return this.debitService.remove(id);
   }
 }

@@ -1,20 +1,21 @@
+import { CreditModule } from '../credit/credit.module';
+import { DebitModule } from '../debit/debit.module';
+import { forwardRef, Module } from '@nestjs/common';
+import { GroupFamilyModule } from '../group-family/group-family.module';
 import { Invoice, InvoiceSchema } from './entities/invoice.entity';
 import { InvoicesController } from './invoice.controller';
 import { InvoicesService } from './invoice.service';
-import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { Order, OrderSchema } from '../orders/entities/order.entity';
 import { OrdersModule } from '../orders/orders.module';
+import { Payment, PaymentSchema } from '../payments/entities/payment.entity';
 import { PaymentsModule } from '../payments/payments.module';
-import { GroupFamilyModule } from '../group-family/group-family.module';
-import { WhatsAppModule } from '../whatsapp/whatsapp.module';
 import { UsersModule } from '../users/users.module';
-import { CreditModule } from '../credit/credit.module';
+import { WhatsAppModule } from '../whatsapp/whatsapp.module';
 import {
   GroupFamily,
   GroupFamilySchema,
 } from '../group-family/entities/group-family.entity';
-import { Order, OrderSchema } from '../orders/entities/order.entity';
-import { Payment, PaymentSchema } from '../payments/entities/payment.entity';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { Payment, PaymentSchema } from '../payments/entities/payment.entity';
     WhatsAppModule,
     UsersModule,
     CreditModule,
+    DebitModule,
   ],
   controllers: [InvoicesController],
   providers: [InvoicesService],
