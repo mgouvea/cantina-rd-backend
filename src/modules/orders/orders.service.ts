@@ -69,6 +69,29 @@ export class OrdersService {
     return order;
   }
 
+  /**
+   * Cria múltiplas ordens de compra a partir de um array de CreateOrderDto
+   * @param createOrderDtoArray Array de objetos CreateOrderDto
+   * @returns Array com as ordens criadas
+   */
+  async createMany(createOrderDtoArray: CreateOrderDto[]) {
+    if (
+      !Array.isArray(createOrderDtoArray) ||
+      createOrderDtoArray.length === 0
+    ) {
+      throw new BadRequestException(
+        'É necessário fornecer um array com pelo menos uma ordem',
+      );
+    }
+
+    // Processa cada ordem do array chamando o método create para cada uma
+    const createdOrders = await Promise.all(
+      createOrderDtoArray.map((orderDto) => this.create(orderDto)),
+    );
+
+    return createdOrders;
+  }
+
   async findAll() {
     const orders = await this.orderModel.find();
 
