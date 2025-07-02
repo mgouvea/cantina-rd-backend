@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
-import { OrdersVisitorsService } from './orders-visitors.service';
-import { OrdersVisitorsController } from './orders-visitors.controller';
 import { MongooseModule } from '@nestjs/mongoose';
+import { OrdersVisitorsController } from './orders-visitors.controller';
+import { OrdersVisitorsService } from './orders-visitors.service';
+import { VisitorsModule } from '../visitors/visitors.module';
+import { WhatsAppModule } from '../whatsapp/whatsapp.module';
 import {
   OrdersVisitor,
   OrdersVisitorSchema,
 } from './entities/orders-visitor.entity';
-import { WhatsAppModule } from '../whatsapp/whatsapp.module';
-import { VisitorsModule } from '../visitors/visitors.module';
 
 @Module({
   imports: [
@@ -19,5 +19,6 @@ import { VisitorsModule } from '../visitors/visitors.module';
   ],
   controllers: [OrdersVisitorsController],
   providers: [OrdersVisitorsService],
+  exports: [OrdersVisitorsService],
 })
 export class OrdersVisitorsModule {}

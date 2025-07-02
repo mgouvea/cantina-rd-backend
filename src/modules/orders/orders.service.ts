@@ -6,6 +6,7 @@ import { UsersService } from '../users/users.service';
 import { WhatsappService } from '../whatsapp/whatsapp.service';
 import { InjectModel } from '@nestjs/mongoose';
 import { GroupFamilyService } from '../group-family/group-family.service';
+import { DashDate } from 'src/shared/types/dashDate.type';
 
 @Injectable()
 export class OrdersService {
@@ -143,6 +144,30 @@ export class OrdersService {
 
   findOne(id: string) {
     return this.orderModel.findById(id);
+  }
+
+  async findTotalOrders(dateRange: DashDate) {
+    // Validar se as datas são válidas
+    if (
+      !dateRange ||
+      !dateRange.startDate ||
+      !dateRange.endDate ||
+      isNaN(dateRange.startDate.getTime()) ||
+      isNaN(dateRange.endDate.getTime())
+    ) {
+      return 0; // Retorna 0 se as datas forem inválidas
+    }
+
+    const orders = await this.orderModel
+      .find({
+        createdAt: {
+          $gte: dateRange.startDate,
+          $lte: dateRange.endDate,
+        },
+      })
+      .exec();
+
+    return orders.reduce((total, order) => total + order.totalPrice, 0);
   }
 
   update(id: string, updateOrderDto: UpdateOrderDto) {
