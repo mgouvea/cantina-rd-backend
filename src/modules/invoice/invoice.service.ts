@@ -484,6 +484,7 @@ export class InvoicesService {
         totalAmount: invoice.totalAmount,
         originalAmount: invoice.originalAmount,
         appliedCredit: invoice.appliedCredit,
+        debitAmount: invoice.debitAmount,
         creditId: invoice.creditId,
         paidAmount: totalPaid, // Adicionar o valor pago
         status: invoice.status,
