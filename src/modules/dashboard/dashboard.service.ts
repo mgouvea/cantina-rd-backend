@@ -94,4 +94,12 @@ export class DashboardService {
 
     return result;
   }
+
+  async findMostSoldProducts(date: DashDate) {
+    return this.ordersService.findMostSoldProducts(date);
+  }
+
+  async findTopBuyers(date: DashDate) {
+    return this.ordersService.findTopBuyers(date);
+  }
 }

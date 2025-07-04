@@ -12,5 +12,6 @@ import { BucketModule } from 'src/shared/bucket/bucket.module';
   ],
   controllers: [ProductsController],
   providers: [ProductsService],
+  exports: [ProductsService],
 })
 export class ProductsModule {}

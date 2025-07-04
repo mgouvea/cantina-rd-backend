@@ -23,4 +23,22 @@ export class DashboardController {
     const dateRange = parseDateRange(startDate, endDate);
     return this.dashboardService.findGroupFamiliesInvoicesOpen(dateRange);
   }
+
+  @Get('most-sold-products')
+  findMostSoldProducts(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+  ) {
+    const dateRange = parseDateRange(startDate, endDate);
+    return this.dashboardService.findMostSoldProducts(dateRange);
+  }
+
+  @Get('top-buyers')
+  findTopBuyers(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+  ) {
+    const dateRange = parseDateRange(startDate, endDate);
+    return this.dashboardService.findTopBuyers(dateRange);
+  }
 }
