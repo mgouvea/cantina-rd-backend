@@ -20,6 +20,7 @@ import {
   GroupFamily,
   GroupFamilyDocument,
 } from '../group-family/entities/group-family.entity';
+import { DashDate } from 'src/shared/types/dashDate.type';
 // import { InvoiceItem } from 'src/shared/types/invoice.types';
 
 @Injectable()
@@ -316,6 +317,51 @@ export class InvoicesService {
 
   async findOne(id: string) {
     return this.invoiceModel.findById(id);
+  }
+
+  async findTotalOpenInvoices(
+    dateRange: DashDate,
+    isGroupFamilySearch = false,
+  ) {
+    // Validar se as datas são válidas
+    if (
+      !dateRange ||
+      !dateRange.startDate ||
+      !dateRange.endDate ||
+      isNaN(dateRange.startDate.getTime()) ||
+      isNaN(dateRange.endDate.getTime())
+    ) {
+      return 0; // Retorna 0 se as datas forem inválidas
+    }
+
+    const openInvoices = await this.invoiceModel
+      .find({
+        createdAt: {
+          $gte: dateRange.startDate,
+          $lte: dateRange.endDate,
+        },
+        status: { $in: ['OPEN', 'PARTIALLY_PAID'] },
+      })
+      .exec();
+
+    const result = isGroupFamilySearch
+      ? openInvoices
+      : openInvoices.reduce((total, invoice) => total + invoice.totalAmount, 0);
+
+    return result;
+  }
+
+  async findTotalOpenInvoicesWithoutDateRange() {
+    const openInvoices = await this.invoiceModel
+      .find({
+        status: { $in: ['OPEN', 'PARTIALLY_PAID'] },
+      })
+      .exec();
+
+    return openInvoices.reduce(
+      (total, invoice) => total + invoice.totalAmount,
+      0,
+    );
   }
 
   async getOrdersByInvoice(invoiceId: string) {

@@ -6,6 +6,7 @@ import { OrdersService } from './orders.service';
 import { WhatsAppModule } from '../whatsapp/whatsapp.module';
 import { UsersModule } from '../users/users.module';
 import { GroupFamilyModule } from '../group-family/group-family.module';
+import { ProductsModule } from '../products/products.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { GroupFamilyModule } from '../group-family/group-family.module';
     WhatsAppModule,
     UsersModule,
     GroupFamilyModule,
+    ProductsModule,
   ],
   controllers: [OrdersController],
   providers: [OrdersService],

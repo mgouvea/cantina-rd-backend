@@ -10,6 +10,7 @@ import { Payment, PaymentDocument } from './entities/payment.entity';
 import { CreatePaymentDto, UpdatePaymentDto } from './dto/create-payment.dto';
 import { Invoice, InvoiceDocument } from '../invoice/entities/invoice.entity';
 import { GroupFamilyService } from '../group-family/group-family.service';
+import { DashDate } from 'src/shared/types/dashDate.type';
 
 @Injectable()
 export class PaymentsService {
@@ -128,6 +129,30 @@ export class PaymentsService {
 
   async findOne(id: string) {
     return this.paymentModel.findById(id);
+  }
+
+  async findTotalPayments(dateRange: DashDate) {
+    // Validar se as datas são válidas
+    if (
+      !dateRange ||
+      !dateRange.startDate ||
+      !dateRange.endDate ||
+      isNaN(dateRange.startDate.getTime()) ||
+      isNaN(dateRange.endDate.getTime())
+    ) {
+      return 0; // Retorna 0 se as datas forem inválidas
+    }
+
+    const payments = await this.paymentModel
+      .find({
+        createdAt: {
+          $gte: dateRange.startDate,
+          $lte: dateRange.endDate,
+        },
+      })
+      .exec();
+
+    return payments.reduce((total, payment) => total + payment.amountPaid, 0);
   }
 
   async update(id: string, updatePaymentDto: UpdatePaymentDto) {

@@ -11,6 +11,7 @@ import {
 } from './entities/orders-visitor.entity';
 import { WhatsappService } from 'src/modules/whatsapp/whatsapp.service';
 import { VisitorsService } from '../visitors/visitors.service';
+import { DashDate } from 'src/shared/types/dashDate.type';
 
 @Injectable()
 export class OrdersVisitorsService {
@@ -67,6 +68,30 @@ export class OrdersVisitorsService {
 
   findOne(id: number) {
     return this.ordersVisitorModel.findById(id).exec();
+  }
+
+  async findTotalOrders(dateRange: DashDate) {
+    // Validar se as datas são válidas
+    if (
+      !dateRange ||
+      !dateRange.startDate ||
+      !dateRange.endDate ||
+      isNaN(dateRange.startDate.getTime()) ||
+      isNaN(dateRange.endDate.getTime())
+    ) {
+      return 0; // Retorna 0 se as datas forem inválidas
+    }
+
+    const orders = await this.ordersVisitorModel
+      .find({
+        createdAt: {
+          $gte: dateRange.startDate,
+          $lte: dateRange.endDate,
+        },
+      })
+      .exec();
+
+    return orders.reduce((total, order) => total + order.totalPrice, 0);
   }
 
   update(id: number, updateOrdersVisitorDto: UpdateOrdersVisitorDto) {
