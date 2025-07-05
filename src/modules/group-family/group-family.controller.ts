@@ -14,7 +14,6 @@ import {
   CreateGroupFamilyDto,
   UpdateGroupFamilyDto,
 } from './dto/group-family.dto';
-import { MemberDto } from './dto/add-member.dto';
 
 @Controller('group-family')
 export class GroupFamilyController {
@@ -52,24 +51,6 @@ export class GroupFamilyController {
     }
   }
 
-  @Patch('add-or-remove-member/:id')
-  async updateMembers(
-    @Param('id') id: string,
-    @Body() addMemberDto: MemberDto[],
-  ) {
-    const updatedGroupFamily =
-      await this.groupFamilyService.addOrRemoveMembersToGroupFamily(
-        id,
-        addMemberDto,
-      );
-
-    if (!updatedGroupFamily) {
-      throw new HttpException('Group family not found', HttpStatus.NOT_FOUND);
-    }
-
-    return updatedGroupFamily;
-  }
-
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -85,27 +66,40 @@ export class GroupFamilyController {
     return groupFamily;
   }
 
-  @Patch('remove-member')
-  async removeMember(@Body() body: { id: string | string[] }): Promise<{
-    message: string;
-    updatedGroupFamilies: any[];
-  }> {
-    const memberIds = Array.isArray(body.id) ? body.id : [body.id];
-
-    const updatedGroupFamilies =
-      await this.groupFamilyService.removeMembersFromGroupFamily(memberIds);
-
-    if (updatedGroupFamilies.length === 0) {
-      throw new HttpException(
-        'Member(s) not found in any group family',
-        HttpStatus.NOT_FOUND,
+  @Patch('add-member/:id')
+  async addMember(
+    @Param('id') groupFamilyId: string,
+    @Body() body: { membersIds: string[] },
+  ) {
+    const updatedGroupFamily =
+      await this.groupFamilyService.addMembersToGroupFamily(
+        groupFamilyId,
+        body.membersIds,
       );
+
+    if (!updatedGroupFamily) {
+      throw new HttpException('Group family not found', HttpStatus.NOT_FOUND);
     }
 
-    return {
-      message: `Member(s) removed successfully from ${updatedGroupFamilies.length} group families`,
-      updatedGroupFamilies,
-    };
+    return updatedGroupFamily;
+  }
+
+  @Patch('remove-member/:id')
+  async removeMember(
+    @Param('id') groupFamilyId: string,
+    @Body() body: { membersIds: string[] },
+  ) {
+    const updatedGroupFamily =
+      await this.groupFamilyService.removeMembersFromGroupFamily(
+        groupFamilyId,
+        body.membersIds,
+      );
+
+    if (!updatedGroupFamily) {
+      throw new HttpException('Group family not found', HttpStatus.NOT_FOUND);
+    }
+
+    return updatedGroupFamily;
   }
 
   @Delete(':id')

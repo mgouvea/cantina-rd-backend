@@ -171,7 +171,13 @@ export class UsersService {
       await this.adminService.remove(admin[0]._id.toString());
     }
 
-    await this.groupFamilyService.removeMembersFromGroupFamily(id);
+    // Only try to remove from group family if the user belongs to one
+    if (user.groupFamily) {
+      await this.groupFamilyService.removeOneMemberFromGroupFamily(
+        user.groupFamily.toString(),
+        id,
+      );
+    }
     await this.bucketService.deleteImageByName(user.publicIdImage);
     return this.userModel.findByIdAndDelete(id);
   }

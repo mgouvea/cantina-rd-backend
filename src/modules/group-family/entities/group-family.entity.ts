@@ -4,6 +4,12 @@ import { Document } from 'mongoose';
 
 export type GroupFamilyDocument = GroupFamily & Document;
 
+export interface GroupFamilyMember {
+  userId: string;
+  memberName: string;
+  memberAvatar: string;
+}
+
 @Schema()
 export class GroupFamily {
   @Prop({ required: true })
@@ -14,9 +20,9 @@ export class GroupFamily {
   @IsString()
   owner: string;
 
-  @Prop({ isRequired: false })
+  @Prop({ isRequired: false, type: Array })
   @IsArray()
-  members: string[];
+  members: GroupFamilyMember[];
 
   @Prop({ required: true, default: Date.now })
   createdAt: Date;

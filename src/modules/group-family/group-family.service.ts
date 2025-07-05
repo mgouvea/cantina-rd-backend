@@ -10,7 +10,6 @@ import {
   GroupFamilyDocument,
 } from './entities/group-family.entity';
 import { UsersService } from '../users/users.service';
-import { MemberDto } from './dto/add-member.dto';
 
 @Injectable()
 export class GroupFamilyService {
@@ -61,9 +60,14 @@ export class GroupFamilyService {
   }
 
   async findGroupFamilyName(groupFamilyId: string): Promise<string> {
-    if (!groupFamilyId) return '';
-    const groupFamily = await this.groupFamilyModel.findById(groupFamilyId);
-    return groupFamily ? groupFamily.name : '';
+    if (!groupFamilyId || groupFamilyId === '') return '';
+    try {
+      const groupFamily = await this.groupFamilyModel.findById(groupFamilyId);
+      return groupFamily ? groupFamily.name : '';
+    } catch (error) {
+      // If there's an error (like invalid ObjectId), return empty string
+      return '';
+    }
   }
 
   async findAllWithOwnerName() {
@@ -86,22 +90,6 @@ export class GroupFamilyService {
     });
   }
 
-  async addOrRemoveMembersToGroupFamily(
-    groupFamilyId: string,
-    members: MemberDto[],
-  ) {
-    const groupFamily = await this.groupFamilyModel.findById(groupFamilyId);
-    if (!groupFamily) {
-      return null;
-    }
-
-    return this.groupFamilyModel.findByIdAndUpdate(
-      groupFamilyId,
-      { members },
-      { new: true },
-    );
-  }
-
   async updateUsersGroupFamily(
     groupFamilyId: string,
     newGroupFamilyId: string | null,
@@ -121,21 +109,114 @@ export class GroupFamilyService {
     return Promise.all(updatePromises);
   }
 
-  async removeMembersFromGroupFamily(idMembers: string | string[]) {
-    const memberIds = Array.isArray(idMembers) ? idMembers : [idMembers];
-    const groupFamilies = await this.groupFamilyModel.find({
-      members: { $in: memberIds },
-    });
+  async addMembersToGroupFamily(groupFamilyId: string, membersIds: string[]) {
+    const groupFamily = await this.groupFamilyModel.findById(groupFamilyId);
+    if (!groupFamily) {
+      return null;
+    }
 
-    const updatePromises = groupFamilies.map((groupFamily) => {
+    console.log('groupFamily', groupFamily);
+
+    // Array to store new members with their details
+    const newMembers = [];
+
+    // Process each member ID
+    for (const memberId of membersIds) {
+      // Fetch user details
+      const user = await this.usersService.findOne(memberId);
+      if (user) {
+        // Add user to new members array with their details
+        newMembers.push({
+          userId: memberId,
+          memberName: user.name || '',
+          memberAvatar: user.urlImage || '',
+        });
+
+        // Update user's groupFamily reference
+        await this.usersService.update(memberId, {
+          groupFamily: groupFamilyId,
+        });
+      }
+    }
+
+    // Combine existing members with new members
+    const updatedMembers = groupFamily.members.concat(newMembers);
+
+    console.log('updatedMembers', updatedMembers);
+
+    // Update the group family with the new members list
+    return this.groupFamilyModel.findByIdAndUpdate(
+      groupFamilyId,
+      { members: updatedMembers },
+      { new: true },
+    );
+  }
+
+  async removeMembersFromGroupFamily(
+    groupFamilyId: string,
+    membersIds: string[],
+  ) {
+    // Check if groupFamilyId is valid before attempting to find it
+    if (!groupFamilyId || groupFamilyId === '') {
+      return null;
+    }
+
+    try {
+      const groupFamily = await this.groupFamilyModel.findById(groupFamilyId);
+      if (!groupFamily) {
+        return null;
+      }
+
+      // Filter out members whose userId is in the membersIds array
+      const updatedMembers = groupFamily.members.filter(
+        (member) => !membersIds.includes(member.userId.toString()),
+      );
+
+      // Update the user documents to remove the groupFamily reference
+      for (const memberId of membersIds) {
+        await this.usersService.update(memberId, { groupFamily: null });
+      }
+
+      // Update the group family with the filtered members list
       return this.groupFamilyModel.findByIdAndUpdate(
-        groupFamily._id,
-        { $pull: { members: { $in: memberIds } } },
+        groupFamilyId,
+        { members: updatedMembers },
         { new: true },
       );
-    });
+    } catch (error) {
+      console.error('Error in removeMembersFromGroupFamily:', error);
+      return null;
+    }
+  }
 
-    return Promise.all(updatePromises);
+  async removeOneMemberFromGroupFamily(
+    groupFamilyId: string,
+    memberId: string,
+  ) {
+    // Check if groupFamilyId is valid before attempting to find it
+    if (!groupFamilyId || groupFamilyId === '') {
+      return null;
+    }
+
+    try {
+      const groupFamily = await this.groupFamilyModel.findById(groupFamilyId);
+      if (!groupFamily) {
+        return null;
+      }
+
+      const updatedMembers = groupFamily.members.filter(
+        (member) => member.userId.toString() !== memberId,
+      );
+
+      return this.groupFamilyModel.findByIdAndUpdate(
+        groupFamilyId,
+        { members: updatedMembers },
+        { new: true },
+      );
+    } catch (error) {
+      console.error('Error in removeOneMemberFromGroupFamily:', error);
+      return null;
+    }
   }
 
   async remove(id: string) {
