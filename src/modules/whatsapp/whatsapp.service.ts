@@ -26,30 +26,37 @@ export class WhatsappService implements OnModuleInit {
 
       this.client = await create({
         session: this.SESSION_NAME,
+        folderNameToken: this.SESSION_PATH,
+        createPathFileToken: true,
+        useChrome: true,
+        headless: true,
+        autoClose: 0,
+        debug: true,
+        updatesLog: true,
+        puppeteerOptions: {
+          executablePath: '/usr/bin/google-chrome',
+          headless: true,
+          args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-gpu',
+            '--disable-extensions',
+            '--disable-infobars',
+            '--start-maximized',
+          ],
+        },
         catchQR: (base64Qrimg, asciiQR) => {
-          console.log('QRCode gerado, escaneie com seu WhatsApp:');
           this.qrCode = asciiQR;
           this.qrCodeBase64 = base64Qrimg;
+          console.log('QRCode gerado');
         },
         statusFind: (statusSession, session) => {
           console.log(`Status da sessão ${session}: ${statusSession}`);
-          // Limpar o QR code quando a sessão estiver conectada
           if (statusSession === 'inChat' || statusSession === 'isLogged') {
             this.qrCode = null;
             this.qrCodeBase64 = null;
           }
-        },
-        folderNameToken: this.SESSION_PATH,
-        createPathFileToken: true,
-        headless: true,
-        useChrome: true,
-        autoClose: 0,
-        updatesLog: true,
-        debug: false,
-        browserArgs: ['--no-sandbox', '--disable-setuid-sandbox'],
-        puppeteerOptions: {
-          executablePath: '/usr/bin/google-chrome',
-          args: ['--no-sandbox', '--disable-setuid-sandbox'],
         },
       });
 
