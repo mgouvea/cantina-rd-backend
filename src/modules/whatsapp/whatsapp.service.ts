@@ -42,12 +42,13 @@ export class WhatsappService implements OnModuleInit {
         folderNameToken: this.SESSION_PATH,
         createPathFileToken: true,
         headless: true,
-        useChrome: false,
+        useChrome: true,
         autoClose: 0,
         updatesLog: true,
         debug: false,
         browserArgs: ['--no-sandbox', '--disable-setuid-sandbox'],
         puppeteerOptions: {
+          executablePath: '/usr/bin/google-chrome',
           args: ['--no-sandbox', '--disable-setuid-sandbox'],
         },
       });
@@ -220,74 +221,6 @@ export class WhatsappService implements OnModuleInit {
   
   Grato! 🙌`;
   }
-
-  //   private generateInvoiceMessage(
-  //     groupFamilyOwnerName: string,
-  //     startDate: Date,
-  //     endDate: Date,
-  //     totalAmount: number,
-  //     invoiceId: string,
-  //     paidAmount = 0,
-  //     remaining = null,
-  //     appliedCredit = 0,
-  //     originalAmount = null,
-  //     debitAmount = 0,
-  //   ): string {
-  //     // Se o valor restante não foi fornecido, calculamos como totalAmount - paidAmount
-  //     const remainingAmount =
-  //       remaining !== null ? remaining : totalAmount - paidAmount;
-
-  //     // Preparar mensagem sobre pagamento parcial, crédito aplicado e débitos anteriores, se aplicável
-  //     let paymentInfo = '';
-  //     // Se temos um valor original diferente do total, significa que foi aplicado crédito
-  //     if (originalAmount !== null && (appliedCredit > 0 || debitAmount > 0)) {
-  //       if (paidAmount > 0) {
-  //         paymentInfo = `
-  //     💵 *Valor original:* R$ ${originalAmount - debitAmount}${
-  //           debitAmount > 0
-  //             ? `
-  //     ⚠️ *Débitos anteriores:* R$ ${debitAmount}`
-  //             : ''
-  //         }
-  //     🔄 *Crédito aplicado:* R$ ${appliedCredit}
-  //     💵 *Valor após crédito:* R$ ${totalAmount}
-  //     ✅ *Já pago:* R$ ${paidAmount}
-  //     💰 *Valor a pagar:* R$ ${remainingAmount}`;
-  //       } else {
-  //         paymentInfo = `
-  //     💵 *Valor original:* R$ ${originalAmount - debitAmount}${
-  //           debitAmount > 0
-  //             ? `
-  //     ⚠️ *Débitos anteriores:* R$ ${debitAmount}`
-  //             : ''
-  //         }
-  //     🔄 *Crédito aplicado:* R$ ${appliedCredit}
-  //     💰 *Valor a pagar:* R$ ${remainingAmount}`;
-  //       }
-  //     } else if (paidAmount > 0) {
-  //       paymentInfo = `
-  //     💵 *Valor total:* R$ ${totalAmount}
-  //     ✅ *Já pago:* R$ ${paidAmount}
-  //     💰 *Valor a pagar:* R$ ${remainingAmount}`;
-  //     } else {
-  //       paymentInfo = `
-  //     💰 *Valor a pagar:* R$ ${remainingAmount}`;
-  //     }
-
-  //     return `📄 *Fatura - Cantina RD*
-
-  //     *Olá, ${formatName(groupFamilyOwnerName)}! Sua fatura foi gerada:*
-  // ${paymentInfo}
-  //     🗓️ *Período:* ${formatDateShort(startDate)} a ${formatDateShort(endDate)}
-  //     💳 *PIX:* tes.realezadivina@udv.org.br
-  //     📌 Envie o comprovante para processarmos o pagamento.
-
-  //     🔗 *Veja o detalhamento da fatura no link abaixo:*
-
-  // https://admin.cantina-rd.shop/fatura-cliente/${invoiceId}
-
-  //     Grato! 🙌`;
-  //   }
 
   private formatPhoneNumber(phone: string): string {
     let cleanNumber = phone.replace(/\D/g, '');
