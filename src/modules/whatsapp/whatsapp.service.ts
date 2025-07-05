@@ -28,23 +28,13 @@ export class WhatsappService implements OnModuleInit {
         session: this.SESSION_NAME,
         folderNameToken: this.SESSION_PATH,
         createPathFileToken: true,
-        useChrome: true,
+        useChrome: false,
         headless: true,
         autoClose: 0,
         debug: true,
         updatesLog: true,
         puppeteerOptions: {
-          executablePath: '/usr/bin/google-chrome',
-          headless: true,
-          args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--disable-gpu',
-            '--disable-extensions',
-            '--disable-infobars',
-            '--start-maximized',
-          ],
+          args: ['--no-sandbox', '--disable-setuid-sandbox'],
         },
         catchQR: (base64Qrimg, asciiQR) => {
           this.qrCode = asciiQR;
