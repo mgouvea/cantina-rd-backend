@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import {
   CreateOrdersVisitorDto,
   UpdateOrdersVisitorDto,
@@ -100,7 +100,19 @@ export class OrdersVisitorsService {
       .exec();
   }
 
-  remove(id: number) {
-    return this.ordersVisitorModel.findByIdAndDelete(id).exec();
+  async remove(id: string) {
+    const order = await this.ordersVisitorModel.findById(id);
+
+    if (!order) {
+      throw new Error('Pedido não encontrado');
+    }
+
+    if (order.invoiceId) {
+      throw new BadRequestException(
+        'Este pedido não pode ser excluído pois está associado a uma fatura',
+      );
+    }
+
+    return this.ordersVisitorModel.findByIdAndDelete(id);
   }
 }
