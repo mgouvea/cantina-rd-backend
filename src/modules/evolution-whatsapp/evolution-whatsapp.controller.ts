@@ -27,7 +27,8 @@ export class EvolutionWhatsappController {
   }
 
   @Get('check-connection')
-  checkConnection(@Query('instanceName') instanceName = 'cantina-rd') {
+  checkConnection() {
+    const instanceName = 'cantina-rd';
     return this.evolutionService.checkConnection(instanceName);
   }
 }
