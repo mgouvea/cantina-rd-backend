@@ -20,6 +20,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { VisitorsPaymentModule } from './modules/stack/visitors-payment/visitors-payment.module';
 import { VisitorsInvoiceModule } from './modules/stack/visitors-invoice/visitors-invoice.module';
 import { OrdersVisitorsModule } from './modules/stack/orders-visitors/orders-visitors.module';
+import { EvolutionWhatsappModule } from './modules/evolution-whatsapp/evolution-whatsapp.module';
 
 @Module({
   imports: [
@@ -75,6 +76,7 @@ import { OrdersVisitorsModule } from './modules/stack/orders-visitors/orders-vis
     DashboardModule,
     VisitorsPaymentModule,
     VisitorsInvoiceModule,
+    EvolutionWhatsappModule,
   ],
   controllers: [],
   providers: [],
