@@ -9,9 +9,9 @@ import {
   OrdersVisitor,
   OrdersVisitorDocument,
 } from './entities/orders-visitor.entity';
-import { WhatsappService } from 'src/modules/whatsapp/whatsapp.service';
 import { VisitorsService } from '../visitors/visitors.service';
 import { DashDate } from 'src/shared/types/dashDate.type';
+import { EvolutionWhatsappService } from 'src/modules/evolution-whatsapp/evolution-whatsapp.service';
 
 @Injectable()
 export class OrdersVisitorsService {
@@ -19,7 +19,7 @@ export class OrdersVisitorsService {
     @InjectModel(OrdersVisitor.name)
     private ordersVisitorModel: Model<OrdersVisitorDocument>,
     private visitorsService: VisitorsService,
-    private whatsappService: WhatsappService,
+    private whatsappService: EvolutionWhatsappService,
   ) {}
 
   async create(createOrdersVisitorDto: CreateOrdersVisitorDto) {

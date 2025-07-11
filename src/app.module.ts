@@ -11,7 +11,6 @@ import { AuthModule } from './modules/auth/auth.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { SubcategoriesModule } from './modules/subcategories/subcategories.module';
 import { InvoiceModule } from './modules/invoice/invoice.module';
-import { WhatsAppModule } from './modules/whatsapp/whatsapp.module';
 import { VisitorsModule } from './modules/stack/visitors/visitors.module';
 import { BucketModule } from './shared/bucket/bucket.module';
 import { CreditModule } from './modules/credit/credit.module';
@@ -76,7 +75,6 @@ import { EvolutionWhatsappModule } from './modules/evolution-whatsapp/evolution-
     AdminModule,
     SubcategoriesModule,
     InvoiceModule,
-    WhatsAppModule,
     VisitorsModule,
     OrdersVisitorsModule,
     BucketModule,

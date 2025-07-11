@@ -7,14 +7,14 @@ import {
   OrdersVisitor,
   OrdersVisitorSchema,
 } from './entities/orders-visitor.entity';
-import { WhatsAppModule } from 'src/modules/whatsapp/whatsapp.module';
+import { EvolutionWhatsappModule } from 'src/modules/evolution-whatsapp/evolution-whatsapp.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: OrdersVisitor.name, schema: OrdersVisitorSchema },
     ]),
-    WhatsAppModule,
+    EvolutionWhatsappModule,
     VisitorsModule,
   ],
   controllers: [OrdersVisitorsController],
