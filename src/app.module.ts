@@ -12,12 +12,15 @@ import { AdminModule } from './modules/admin/admin.module';
 import { SubcategoriesModule } from './modules/subcategories/subcategories.module';
 import { InvoiceModule } from './modules/invoice/invoice.module';
 import { WhatsAppModule } from './modules/whatsapp/whatsapp.module';
-import { VisitorsModule } from './modules/visitors/visitors.module';
-import { OrdersVisitorsModule } from './modules/orders-visitors/orders-visitors.module';
+import { VisitorsModule } from './modules/stack/visitors/visitors.module';
 import { BucketModule } from './shared/bucket/bucket.module';
 import { CreditModule } from './modules/credit/credit.module';
 import { DebitModule } from './modules/debit/debit.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { VisitorsPaymentModule } from './modules/stack/visitors-payment/visitors-payment.module';
+import { VisitorsInvoiceModule } from './modules/stack/visitors-invoice/visitors-invoice.module';
+import { OrdersVisitorsModule } from './modules/stack/orders-visitors/orders-visitors.module';
+import { EvolutionWhatsappModule } from './modules/evolution-whatsapp/evolution-whatsapp.module';
 
 @Module({
   imports: [
@@ -27,8 +30,17 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     }),
     MongooseModule.forRootAsync({
       useFactory: () => {
-        // const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.twkwaw3.mongodb.net/cantina-rd?retryWrites=true&w=majority`;
-        const uri = `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}:${process.env.DB_PORT}/`;
+        let uri: string;
+
+        if (process.env.NODE_ENV === 'production') {
+          uri = `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}:${process.env.DB_PORT}/`;
+          console.log('🚀 Conectando ao MongoDB em ambiente de produção (VPS)');
+        } else {
+          uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.twkwaw3.mongodb.net/cantina-rd?retryWrites=true&w=majority`;
+          console.log(
+            '🔧 Conectando ao MongoDB em ambiente de desenvolvimento',
+          );
+        }
 
         return {
           uri,
@@ -71,6 +83,9 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     CreditModule,
     DebitModule,
     DashboardModule,
+    VisitorsPaymentModule,
+    VisitorsInvoiceModule,
+    EvolutionWhatsappModule,
   ],
   controllers: [],
   providers: [],
