@@ -30,8 +30,17 @@ import { EvolutionWhatsappModule } from './modules/evolution-whatsapp/evolution-
     }),
     MongooseModule.forRootAsync({
       useFactory: () => {
-        const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.twkwaw3.mongodb.net/cantina-rd?retryWrites=true&w=majority`;
-        // const uri = `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}:${process.env.DB_PORT}/`;
+        let uri: string;
+
+        if (process.env.NODE_ENV === 'production') {
+          uri = `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}:${process.env.DB_PORT}/`;
+          console.log('🚀 Conectando ao MongoDB em ambiente de produção (VPS)');
+        } else {
+          uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.twkwaw3.mongodb.net/cantina-rd?retryWrites=true&w=majority`;
+          console.log(
+            '🔧 Conectando ao MongoDB em ambiente de desenvolvimento',
+          );
+        }
 
         return {
           uri,
