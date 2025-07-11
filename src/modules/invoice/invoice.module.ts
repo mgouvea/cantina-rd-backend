@@ -1,5 +1,6 @@
 import { CreditModule } from '../credit/credit.module';
 import { DebitModule } from '../debit/debit.module';
+import { EvolutionWhatsappModule } from '../evolution-whatsapp/evolution-whatsapp.module';
 import { forwardRef, Module } from '@nestjs/common';
 import { GroupFamilyModule } from '../group-family/group-family.module';
 import { Invoice, InvoiceSchema } from './entities/invoice.entity';
@@ -11,7 +12,6 @@ import { OrdersModule } from '../orders/orders.module';
 import { Payment, PaymentSchema } from '../payments/entities/payment.entity';
 import { PaymentsModule } from '../payments/payments.module';
 import { UsersModule } from '../users/users.module';
-import { WhatsAppModule } from '../whatsapp/whatsapp.module';
 import {
   GroupFamily,
   GroupFamilySchema,
@@ -28,7 +28,7 @@ import {
     OrdersModule,
     forwardRef(() => PaymentsModule),
     GroupFamilyModule,
-    WhatsAppModule,
+    EvolutionWhatsappModule,
     UsersModule,
     CreditModule,
     DebitModule,

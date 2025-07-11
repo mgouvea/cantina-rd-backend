@@ -1,20 +1,20 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateOrderDto, UpdateOrderDto } from './dto/create-order.dto';
 import { DashDate } from 'src/shared/types/dashDate.type';
+import { EvolutionWhatsappService } from '../evolution-whatsapp/evolution-whatsapp.service';
 import { GroupFamilyService } from '../group-family/group-family.service';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Order, OrderDocument } from './entities/order.entity';
 import { ProductsService } from '../products/products.service';
 import { UsersService } from '../users/users.service';
-import { WhatsappService } from '../whatsapp/whatsapp.service';
 
 @Injectable()
 export class OrdersService {
   constructor(
     @InjectModel(Order.name)
     private readonly orderModel: Model<OrderDocument>,
-    private readonly whatsappService: WhatsappService,
+    private readonly whatsappService: EvolutionWhatsappService,
     private readonly userService: UsersService,
     private readonly groupFamilyService: GroupFamilyService,
     private readonly productsService: ProductsService,

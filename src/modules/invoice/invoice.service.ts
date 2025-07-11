@@ -1,9 +1,15 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Invoice, InvoiceDocument } from './entities/invoice.entity';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreditService } from '../credit/credit.service';
+import { DashDate } from 'src/shared/types/dashDate.type';
 import { DebitService } from '../debit/debit.service';
+import { EvolutionWhatsappService } from '../evolution-whatsapp/evolution-whatsapp.service';
+import { InjectModel } from '@nestjs/mongoose';
+import { Invoice, InvoiceDocument } from './entities/invoice.entity';
+import { Model } from 'mongoose';
+import { ModuleRef } from '@nestjs/core';
+import { Order, OrderDocument } from '../orders/entities/order.entity';
+import { Payment, PaymentDocument } from '../payments/entities/payment.entity';
+import { UsersService } from '../users/users.service';
 import {
   ConsumoItem,
   CreateInvoiceDto,
@@ -11,17 +17,10 @@ import {
   InvoiceCreateResponse,
   UserStatement,
 } from './dto/create-invoice.dto';
-import { Order, OrderDocument } from '../orders/entities/order.entity';
-import { Payment, PaymentDocument } from '../payments/entities/payment.entity';
-import { ModuleRef } from '@nestjs/core';
-import { UsersService } from '../users/users.service';
-import { WhatsappService } from '../whatsapp/whatsapp.service';
 import {
   GroupFamily,
   GroupFamilyDocument,
 } from '../group-family/entities/group-family.entity';
-import { DashDate } from 'src/shared/types/dashDate.type';
-// import { InvoiceItem } from 'src/shared/types/invoice.types';
 
 @Injectable()
 export class InvoicesService {
@@ -607,7 +606,7 @@ export class InvoicesService {
       }
 
       // Chamar o serviço de WhatsApp para enviar a mensagem
-      const whatsappService = this.moduleRef.get(WhatsappService, {
+      const whatsappService = this.moduleRef.get(EvolutionWhatsappService, {
         strict: false,
       });
 
