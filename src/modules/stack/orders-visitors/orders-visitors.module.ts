@@ -3,11 +3,11 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { OrdersVisitorsController } from './orders-visitors.controller';
 import { OrdersVisitorsService } from './orders-visitors.service';
 import { VisitorsModule } from '../visitors/visitors.module';
-import { WhatsAppModule } from '../whatsapp/whatsapp.module';
 import {
   OrdersVisitor,
   OrdersVisitorSchema,
 } from './entities/orders-visitor.entity';
+import { WhatsAppModule } from 'src/modules/whatsapp/whatsapp.module';
 
 @Module({
   imports: [

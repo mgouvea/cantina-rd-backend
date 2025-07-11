@@ -12,12 +12,14 @@ import { AdminModule } from './modules/admin/admin.module';
 import { SubcategoriesModule } from './modules/subcategories/subcategories.module';
 import { InvoiceModule } from './modules/invoice/invoice.module';
 import { WhatsAppModule } from './modules/whatsapp/whatsapp.module';
-import { VisitorsModule } from './modules/visitors/visitors.module';
-import { OrdersVisitorsModule } from './modules/orders-visitors/orders-visitors.module';
+import { VisitorsModule } from './modules/stack/visitors/visitors.module';
 import { BucketModule } from './shared/bucket/bucket.module';
 import { CreditModule } from './modules/credit/credit.module';
 import { DebitModule } from './modules/debit/debit.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { VisitorsPaymentModule } from './modules/stack/visitors-payment/visitors-payment.module';
+import { VisitorsInvoiceModule } from './modules/stack/visitors-invoice/visitors-invoice.module';
+import { OrdersVisitorsModule } from './modules/stack/orders-visitors/orders-visitors.module';
 
 @Module({
   imports: [
@@ -71,6 +73,8 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     CreditModule,
     DebitModule,
     DashboardModule,
+    VisitorsPaymentModule,
+    VisitorsInvoiceModule,
   ],
   controllers: [],
   providers: [],

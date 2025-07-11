@@ -3,8 +3,8 @@ import { Injectable } from '@nestjs/common';
 import { GroupFamilyService } from '../group-family/group-family.service';
 import { InvoicesService as InvoiceService } from '../invoice/invoice.service';
 import { OrdersService } from '../orders/orders.service';
-import { OrdersVisitorsService } from '../orders-visitors/orders-visitors.service';
 import { PaymentsService } from '../payments/payments.service';
+import { OrdersVisitorsService } from '../stack/orders-visitors/orders-visitors.service';
 
 @Injectable()
 export class DashboardService {
