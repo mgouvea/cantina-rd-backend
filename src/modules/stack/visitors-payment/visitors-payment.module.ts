@@ -1,9 +1,25 @@
 import { Module } from '@nestjs/common';
 import { VisitorsPaymentService } from './visitors-payment.service';
 import { VisitorsPaymentController } from './visitors-payment.controller';
+import { MongooseModule } from '@nestjs/mongoose';
+import {
+  VisitorsPayment,
+  VisitorsPaymentSchema,
+} from './entities/visitors-payment.entity';
+import {
+  VisitorsInvoice,
+  InvoiceSchema,
+} from '../visitors-invoice/entities/visitors-invoice.entity';
 
 @Module({
+  imports: [
+    MongooseModule.forFeature([
+      { name: VisitorsPayment.name, schema: VisitorsPaymentSchema },
+      { name: VisitorsInvoice.name, schema: InvoiceSchema },
+    ]),
+  ],
   controllers: [VisitorsPaymentController],
-  providers: [VisitorsPaymentService]
+  providers: [VisitorsPaymentService],
+  exports: [VisitorsPaymentService],
 })
 export class VisitorsPaymentModule {}

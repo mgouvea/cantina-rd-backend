@@ -66,8 +66,20 @@ export class OrdersVisitorsService {
     return ordersVisitors;
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return this.ordersVisitorModel.findById(id).exec();
+  }
+
+  findOrdersWithRange(visitorId: string, dateRange: DashDate) {
+    return this.ordersVisitorModel
+      .find({
+        buyerId: visitorId,
+        createdAt: {
+          $gte: dateRange.startDate,
+          $lte: dateRange.endDate,
+        },
+      })
+      .exec();
   }
 
   async findTotalOrders(dateRange: DashDate) {
@@ -94,7 +106,7 @@ export class OrdersVisitorsService {
     return orders.reduce((total, order) => total + order.totalPrice, 0);
   }
 
-  update(id: number, updateOrdersVisitorDto: UpdateOrdersVisitorDto) {
+  update(id: string, updateOrdersVisitorDto: UpdateOrdersVisitorDto) {
     return this.ordersVisitorModel
       .findByIdAndUpdate(id, updateOrdersVisitorDto)
       .exec();
