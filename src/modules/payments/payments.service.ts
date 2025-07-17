@@ -64,7 +64,10 @@ export class PaymentsService {
   }
 
   async findAll() {
-    const payments = await this.paymentModel.find().lean();
+    const payments = await this.paymentModel
+      .find()
+      .sort({ paymentDate: -1 })
+      .lean();
 
     // Criar um mapa de invoiceIds para evitar buscas duplicadas
     const invoiceIds = [
@@ -131,6 +134,7 @@ export class PaymentsService {
     return this.paymentModel.findById(id);
   }
 
+  // Encontrar o total de pagamentos no intervalo de datas - Dashboard
   async findTotalPayments(dateRange: DashDate) {
     // Validar se as datas são válidas
     if (
