@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   CreateVisitorsInvoiceDto,
   UpdateVisitorsInvoiceDto,
@@ -233,100 +237,101 @@ export class VisitorsInvoiceService {
   }
 
   async getFullInvoices(
-    invoiceIds: string[],
+    buyerIds: string[],
   ): Promise<FullVisitorsInvoiceResponse[]> {
-    const invoicesRaw = await this.invoiceModel
-      .find({
-        _id: { $in: invoiceIds },
-      })
-      .lean();
-
-    if (invoicesRaw.length === 0) {
-      throw new Error('Nenhuma fatura encontrada.');
-    }
-
-    const results: FullVisitorsInvoiceResponse[] = [];
-    const visitorsService = this.moduleRef.get(VisitorsService, {
-      strict: false,
-    });
-
-    for (const invoice of invoicesRaw) {
-      const ordersRaw = await this.orderModel
-        .find({ invoiceId: invoice._id })
+    try {
+      const invoicesRaw = await this.invoiceModel
+        .find({
+          buyerId: { $in: buyerIds },
+        })
         .lean();
 
-      // Buscar pagamentos associados à fatura
-      const paymentsRaw = await this.paymentModel
-        .find({ invoiceId: invoice._id })
-        .lean();
+      if (invoicesRaw.length === 0) {
+        throw new Error('Nenhuma fatura encontrada.');
+      }
 
-      const orders = ordersRaw.map((order) => ({
-        _id: order._id.toString(),
-        buyerId: order.buyerId,
-        products: order.products,
-        totalPrice: order.totalPrice,
-        createdAt: order.createdAt,
-      }));
+      const results: FullVisitorsInvoiceResponse[] = [];
+      const visitorsService = this.moduleRef.get(VisitorsService, {
+        strict: false,
+      });
 
-      const payments = paymentsRaw.map((payment) => ({
-        _id: payment._id.toString(),
-        amountPaid: payment.amountPaid,
-        isPartial: payment.isPartial,
-        paymentDate: payment.paymentDate,
-        createdAt: payment.createdAt,
-      }));
+      for (const invoice of invoicesRaw) {
+        const ordersRaw = await this.orderModel
+          .find({ invoiceId: invoice._id })
+          .lean();
 
-      const consumoPorPessoa: Record<
-        string,
-        { date: Date; products: any[] }[]
-      > = {};
-      for (const order of ordersRaw) {
-        const buyer = order.buyerId;
-        if (!consumoPorPessoa[buyer]) {
-          consumoPorPessoa[buyer] = [];
-        }
-        consumoPorPessoa[buyer].push({
-          date: order.createdAt,
+        // Buscar pagamentos associados à fatura
+        const paymentsRaw = await this.paymentModel
+          .find({ invoiceId: invoice._id })
+          .lean();
+
+        const orders = ordersRaw.map((order) => ({
+          _id: order._id.toString(),
+          buyerId: order.buyerId,
           products: order.products,
+          totalPrice: order.totalPrice,
+          createdAt: order.createdAt,
+        }));
+
+        const payments = paymentsRaw.map((payment) => ({
+          _id: payment._id.toString(),
+          amountPaid: payment.amountPaid,
+          isPartial: payment.isPartial,
+          paymentDate: payment.paymentDate,
+          createdAt: payment.createdAt,
+        }));
+
+        const consumoPorPessoa: Record<
+          string,
+          { date: Date; products: any[] }[]
+        > = {};
+        for (const order of ordersRaw) {
+          const buyer = order.buyerId;
+          if (!consumoPorPessoa[buyer]) {
+            consumoPorPessoa[buyer] = [];
+          }
+          consumoPorPessoa[buyer].push({
+            date: order.createdAt,
+            products: order.products,
+          });
+        }
+
+        // Buscar nome do comprador (visitante)
+        let visitorName = 'Visitante não encontrado';
+        try {
+          const visitor = await visitorsService.findVisitorNameAndPhoneById(
+            invoice.buyerId,
+          );
+          visitorName = visitor?.name || 'Visitante não encontrado';
+        } catch (error) {
+          visitorName = 'Visitante não encontrado';
+        }
+
+        // Calcular o valor total pago e o valor restante
+        const totalPaid = payments.reduce((sum, p) => sum + p.amountPaid, 0);
+        const remaining = invoice.totalAmount - totalPaid;
+
+        results.push({
+          _id: invoice._id.toString(),
+          buyerId: invoice.buyerId,
+          startDate: invoice.startDate,
+          endDate: invoice.endDate,
+          sentByWhatsapp: invoice.sentByWhatsapp,
+          totalAmount: invoice.totalAmount,
+          paidAmount: totalPaid,
+          status: invoice.status,
+          createdAt: invoice.createdAt,
+          orders,
+          payments,
+          consumoPorPessoa,
+          visitorName,
+          remaining,
         });
       }
 
-      // Buscar nomes dos compradores (visitantes)
-      const consumidoresNomes: Record<string, string> = {};
-      for (const buyerId of Object.keys(consumoPorPessoa)) {
-        try {
-          const visitor = await visitorsService.findVisitorNameAndPhoneById(
-            buyerId,
-          );
-          consumidoresNomes[buyerId] =
-            visitor?.name || 'Visitante não encontrado';
-        } catch (error) {
-          consumidoresNomes[buyerId] = 'Visitante não encontrado';
-        }
-      }
-
-      // Calcular o valor total pago e o valor restante
-      const totalPaid = payments.reduce((sum, p) => sum + p.amountPaid, 0);
-      const remaining = invoice.totalAmount - totalPaid;
-
-      results.push({
-        _id: invoice._id.toString(),
-        buyerId: invoice.buyerId,
-        startDate: invoice.startDate,
-        endDate: invoice.endDate,
-        sentByWhatsapp: invoice.sentByWhatsapp,
-        totalAmount: invoice.totalAmount,
-        paidAmount: totalPaid,
-        status: invoice.status,
-        createdAt: invoice.createdAt,
-        orders,
-        payments,
-        consumoPorPessoa,
-        consumidoresNomes,
-        remaining,
-      });
+      return results;
+    } catch (error) {
+      throw new NotFoundException('Nenhuma fatura encontrada');
     }
-
-    return results;
   }
 }

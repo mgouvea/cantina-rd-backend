@@ -25,6 +25,11 @@ export class VisitorsInvoiceController {
     return this.visitorsInvoiceService.create(createVisitorsInvoiceDto);
   }
 
+  @Post('full')
+  getMultipleFullInvoices(@Body() body: FetchMultipleVisitorsInvoicesDto) {
+    return this.visitorsInvoiceService.getFullInvoices(body.ids);
+  }
+
   @Get()
   findAll() {
     return this.visitorsInvoiceService.findAll();
@@ -46,10 +51,5 @@ export class VisitorsInvoiceController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.visitorsInvoiceService.remove(id);
-  }
-
-  @Post('full')
-  getMultipleFullInvoices(@Body() body: FetchMultipleVisitorsInvoicesDto) {
-    return this.visitorsInvoiceService.getFullInvoices(body.ids);
   }
 }

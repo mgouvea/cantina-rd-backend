@@ -25,6 +25,6 @@ export type FullVisitorsInvoiceResponse = {
     createdAt: Date;
   }[];
   consumoPorPessoa: Record<string, { date: Date; products: ProductItem[] }[]>;
-  consumidoresNomes: Record<string, string>;
+  visitorName: string;
   remaining: number;
 };
