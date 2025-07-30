@@ -10,6 +10,7 @@ import {
   VisitorsInvoice,
   InvoiceSchema,
 } from '../visitors-invoice/entities/visitors-invoice.entity';
+import { VisitorsModule } from '../visitors/visitors.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import {
       { name: VisitorsPayment.name, schema: VisitorsPaymentSchema },
       { name: VisitorsInvoice.name, schema: InvoiceSchema },
     ]),
+    VisitorsModule,
   ],
   controllers: [VisitorsPaymentController],
   providers: [VisitorsPaymentService],
