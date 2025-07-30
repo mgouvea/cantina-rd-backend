@@ -49,6 +49,10 @@ export class VisitorsService {
     });
   }
 
+  async findAllWithoutDateFilter() {
+    return this.visitorModel.find().sort({ name: 1 });
+  }
+
   async findOne(id: string) {
     return this.visitorModel.findById(id);
   }

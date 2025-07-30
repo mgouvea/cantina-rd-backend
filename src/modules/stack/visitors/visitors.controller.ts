@@ -27,6 +27,11 @@ export class VisitorsController {
     return this.visitorsService.findAll(search);
   }
 
+  @Get('without-date-filter')
+  findAllWithoutDateFilter() {
+    return this.visitorsService.findAllWithoutDateFilter();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.visitorsService.findOne(id);

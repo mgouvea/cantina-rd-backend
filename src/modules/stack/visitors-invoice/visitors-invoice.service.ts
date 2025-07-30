@@ -105,8 +105,20 @@ export class VisitorsInvoiceService {
       );
     }
 
+    // Mapear os pedidos para o formato esperado na resposta
+    const formattedOrders = orders.map((order) => ({
+      _id: order._id.toString(),
+      buyerId: order.buyerId,
+      products: order.products,
+      totalPrice: order.totalPrice,
+      createdAt: order.createdAt,
+    }));
+
     // Calcular o valor total dos pedidos
-    const totalAmount = orders.reduce((sum, o) => sum + o.totalPrice, 0);
+    const totalAmount = formattedOrders.reduce(
+      (sum, o) => sum + o.totalPrice,
+      0,
+    );
 
     // Organizar o consumo do visitante
     const consumoPorPessoa: Record<string, { date: Date; products: any[] }[]> =
@@ -151,6 +163,20 @@ export class VisitorsInvoiceService {
       // Calcular o valor restante (total - pago)
       const remaining = updatedInvoice.totalAmount - updatedInvoice.paidAmount;
 
+      // Buscar nome do visitante
+      let visitorName = 'Visitante não encontrado';
+      try {
+        const visitorsService = this.moduleRef.get(VisitorsService, {
+          strict: false,
+        });
+        const visitor = await visitorsService.findVisitorNameAndPhoneById(
+          visitorId,
+        );
+        visitorName = visitor?.name || 'Visitante não encontrado';
+      } catch (error) {
+        visitorName = 'Visitante não encontrado';
+      }
+
       return {
         updated: true,
         invoice: {
@@ -163,12 +189,12 @@ export class VisitorsInvoiceService {
           paidAmount: updatedInvoice.paidAmount,
           status: updatedInvoice.status,
           createdAt: updatedInvoice.createdAt,
-          orders: [],
+          orders: formattedOrders,
           payments: [],
           consumoPorPessoa,
-          remaining: remaining,
+          visitorName,
+          remaining,
         },
-        consumoPorPessoa,
       };
     }
 
@@ -197,6 +223,20 @@ export class VisitorsInvoiceService {
       ),
     );
 
+    // Buscar nome do visitante
+    let visitorName = 'Visitante não encontrado';
+    try {
+      const visitorsService = this.moduleRef.get(VisitorsService, {
+        strict: false,
+      });
+      const visitor = await visitorsService.findVisitorNameAndPhoneById(
+        visitorId,
+      );
+      visitorName = visitor?.name || 'Visitante não encontrado';
+    } catch (error) {
+      visitorName = 'Visitante não encontrado';
+    }
+
     return {
       created: true,
       invoice: {
@@ -209,12 +249,12 @@ export class VisitorsInvoiceService {
         paidAmount: newInvoice.paidAmount,
         status: newInvoice.status,
         createdAt: newInvoice.createdAt,
-        orders: [],
+        orders: formattedOrders,
         payments: [],
         consumoPorPessoa,
+        visitorName,
         remaining: newInvoice.totalAmount, // Nova fatura, valor restante = valor total
       },
-      consumoPorPessoa,
     };
   }
 
@@ -232,7 +272,38 @@ export class VisitorsInvoiceService {
       .exec();
   }
 
-  remove(id: string) {
+  async remove(id: string) {
+    // 1. Buscar a fatura antes de excluí-la para obter informações
+    const invoice = await this.invoiceModel.findById(id).exec();
+
+    if (!invoice) {
+      throw new NotFoundException('Fatura não encontrada');
+    }
+
+    // 2. Buscar todos os pedidos associados a esta fatura
+    const orders = await this.orderModel.find({ invoiceId: id }).exec();
+
+    // 3. Atualizar cada pedido para remover a referência à fatura
+    if (orders && orders.length > 0) {
+      await Promise.all(
+        orders.map(async (order) => {
+          // Remover a propriedade invoiceId de cada pedido
+          return this.orderModel
+            .findByIdAndUpdate(
+              order._id,
+              { $unset: { invoiceId: 1 } },
+              { new: true },
+            )
+            .exec();
+        }),
+      );
+
+      console.log(
+        `Removida referência da fatura ${id} de ${orders.length} pedidos`,
+      );
+    }
+
+    // 4. Excluir a fatura
     return this.invoiceModel.findByIdAndDelete(id).exec();
   }
 
