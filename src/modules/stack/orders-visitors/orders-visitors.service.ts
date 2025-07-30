@@ -53,21 +53,90 @@ export class OrdersVisitorsService {
   }
 
   async findAll() {
-    const ordersVisitors = await this.ordersVisitorModel.find().exec();
-    await Promise.all(
-      ordersVisitors.map(async (order) => {
-        const userName = await this.visitorsService.findVisitorNameAndPhoneById(
-          order.buyerId,
-        );
-        order.buyerName = userName.name;
-        order.churchCore = userName.churchCore;
-      }),
-    );
+    // 1. Buscar todos os pedidos com sort por data de criação (mais recentes primeiro)
+    const ordersVisitors = await this.ordersVisitorModel
+      .find()
+      .sort({ createdAt: -1 })
+      .exec();
+
+    if (ordersVisitors.length === 0) {
+      return [];
+    }
+
+    // 2. Agrupar os IDs dos compradores para fazer uma busca única
+    const buyerIds = [
+      ...new Set(ordersVisitors.map((order) => order.buyerId)),
+    ].filter(Boolean);
+
+    if (buyerIds.length === 0) {
+      return ordersVisitors;
+    }
+
+    try {
+      // 3. Buscar informações dos visitantes em paralelo
+      const visitorsData = await Promise.all(
+        buyerIds.map(async (id) => {
+          try {
+            const visitor =
+              await this.visitorsService.findVisitorNameAndPhoneById(id);
+            return visitor ? { id: id.toString(), visitor } : null;
+          } catch (error) {
+            console.error(
+              `Erro ao buscar visitante com ID ${id}:`,
+              error.message,
+            );
+            return null;
+          }
+        }),
+      );
+
+      // 4. Criar um mapa para acesso rápido
+      const visitorMap = new Map();
+      visitorsData.filter(Boolean).forEach((data) => {
+        if (data && data.visitor) {
+          visitorMap.set(data.id, data.visitor);
+        }
+      });
+
+      // 5. Atribuir os nomes e churchCore aos pedidos
+      for (const order of ordersVisitors) {
+        if (order.buyerId) {
+          const visitor = visitorMap.get(order.buyerId.toString());
+          if (visitor) {
+            order.buyerName = visitor.name;
+            order.churchCore = visitor.churchCore;
+          } else {
+            // Tratamento para visitantes que não existem mais
+            order.buyerName = 'Visitante não encontrado';
+            order.churchCore = null;
+          }
+        } else {
+          order.buyerName = 'ID de visitante inválido';
+          order.churchCore = null;
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao processar visitantes:', error);
+      // Mesmo com erro, retornamos os pedidos sem os nomes dos compradores
+    }
+
     return ordersVisitors;
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return this.ordersVisitorModel.findById(id).exec();
+  }
+
+  findOrdersWithRange(visitorId: string, dateRange: DashDate) {
+    return this.ordersVisitorModel
+      .find({
+        buyerId: visitorId,
+        createdAt: {
+          $gte: dateRange.startDate,
+          $lte: dateRange.endDate,
+        },
+      })
+      .exec();
   }
 
   async findTotalOrders(dateRange: DashDate) {
@@ -94,7 +163,7 @@ export class OrdersVisitorsService {
     return orders.reduce((total, order) => total + order.totalPrice, 0);
   }
 
-  update(id: number, updateOrdersVisitorDto: UpdateOrdersVisitorDto) {
+  update(id: string, updateOrdersVisitorDto: UpdateOrdersVisitorDto) {
     return this.ordersVisitorModel
       .findByIdAndUpdate(id, updateOrdersVisitorDto)
       .exec();

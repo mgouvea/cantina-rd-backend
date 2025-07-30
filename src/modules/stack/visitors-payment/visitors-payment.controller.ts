@@ -1,11 +1,23 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { VisitorsPaymentService } from './visitors-payment.service';
-import { CreateVisitorsPaymentDto } from './dto/create-visitors-payment.dto';
-import { UpdateVisitorsPaymentDto } from './dto/update-visitors-payment.dto';
+import {
+  CreateVisitorsPaymentDto,
+  UpdateVisitorsPaymentDto,
+} from './dto/create-visitors-payment.dto';
 
 @Controller('visitors-payment')
 export class VisitorsPaymentController {
-  constructor(private readonly visitorsPaymentService: VisitorsPaymentService) {}
+  constructor(
+    private readonly visitorsPaymentService: VisitorsPaymentService,
+  ) {}
 
   @Post()
   create(@Body() createVisitorsPaymentDto: CreateVisitorsPaymentDto) {
@@ -19,16 +31,19 @@ export class VisitorsPaymentController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.visitorsPaymentService.findOne(+id);
+    return this.visitorsPaymentService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateVisitorsPaymentDto: UpdateVisitorsPaymentDto) {
-    return this.visitorsPaymentService.update(+id, updateVisitorsPaymentDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateVisitorsPaymentDto: UpdateVisitorsPaymentDto,
+  ) {
+    return this.visitorsPaymentService.update(id, updateVisitorsPaymentDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.visitorsPaymentService.remove(+id);
+    return this.visitorsPaymentService.remove(id);
   }
 }

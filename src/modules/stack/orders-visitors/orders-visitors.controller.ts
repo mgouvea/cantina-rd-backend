@@ -29,7 +29,7 @@ export class OrdersVisitorsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.ordersVisitorsService.findOne(+id);
+    return this.ordersVisitorsService.findOne(id);
   }
 
   @Patch(':id')
@@ -37,7 +37,7 @@ export class OrdersVisitorsController {
     @Param('id') id: string,
     @Body() updateOrdersVisitorDto: UpdateOrdersVisitorDto,
   ) {
-    return this.ordersVisitorsService.update(+id, updateOrdersVisitorDto);
+    return this.ordersVisitorsService.update(id, updateOrdersVisitorDto);
   }
 
   @Delete(':id')
