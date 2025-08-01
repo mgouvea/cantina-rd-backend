@@ -24,9 +24,9 @@ export class CreditController {
     return this.creditService.findAllActiveCredits();
   }
 
-  @Get('all')
-  findAll() {
-    return this.creditService.findAll();
+  @Get('archive')
+  findAllArchiveCredits() {
+    return this.creditService.findAllArchiveCredits();
   }
 
   @Get(':id')

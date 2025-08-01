@@ -83,8 +83,10 @@ export class CreditService {
     return creditsWithGroupName;
   }
 
-  async findAll() {
-    const credits = await this.creditModel.find().lean();
+  async findAllArchiveCredits() {
+    const credits = await this.creditModel
+      .find({ archivedCredit: true })
+      .lean();
 
     // Adicionar o nome do grupo familiar para cada crédito
     const creditsWithGroupName = await Promise.all(
