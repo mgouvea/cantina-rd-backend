@@ -4,6 +4,7 @@ export class CreateCreditDto {
   creditedAmount: number;
   amount: number;
   groupFamilyId: string;
+  archivedCredit: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

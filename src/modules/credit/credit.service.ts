@@ -16,13 +16,77 @@ export class CreditService {
     private groupFamilyModel: Model<GroupFamilyDocument>,
   ) {}
 
-  create(createCreditDto: CreateCreditDto) {
-    const credit = new this.creditModel(createCreditDto);
-    return credit.save();
+  async create(createCreditDto: CreateCreditDto) {
+    // Check if there's an existing credit with amount > 0 for this group family
+    const existingCredit = await this.creditModel
+      .findOne({
+        groupFamilyId: createCreditDto.groupFamilyId,
+        amount: { $gt: 0 },
+        archivedCredit: false,
+      })
+      .exec();
+
+    if (existingCredit) {
+      // If there's an existing credit with amount > 0, archive it and create a new one with combined amount
+      const combinedAmount = existingCredit.amount + createCreditDto.amount;
+      // Archive the existing credit
+      await this.creditModel
+        .findByIdAndUpdate(existingCredit._id, {
+          amount: 0,
+          archivedCredit: true,
+          updatedAt: new Date(),
+        })
+        .exec();
+
+      // Create a new credit with combined amount
+      const newCredit = new this.creditModel({
+        ...createCreditDto,
+        amount: combinedAmount,
+        creditedAmount: combinedAmount,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      return newCredit.save();
+    } else {
+      // If no existing credit or existing credit has amount = 0, create a new one
+      const credit = new this.creditModel({
+        ...createCreditDto,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+      return credit.save();
+    }
   }
 
-  async findAll() {
-    const credits = await this.creditModel.find().lean();
+  async findAllActiveCredits() {
+    const credits = await this.creditModel
+      .find({ archivedCredit: false })
+      .lean();
+
+    // Adicionar o nome do grupo familiar para cada crédito
+    const creditsWithGroupName = await Promise.all(
+      credits.map(async (credit) => {
+        const groupFamily = await this.groupFamilyModel
+          .findById(credit.groupFamilyId)
+          .lean();
+
+        return {
+          ...credit,
+          groupFamilyName: groupFamily
+            ? groupFamily.name
+            : 'Grupo não encontrado',
+        };
+      }),
+    );
+
+    return creditsWithGroupName;
+  }
+
+  async findAllArchiveCredits() {
+    const credits = await this.creditModel
+      .find({ archivedCredit: true })
+      .lean();
 
     // Adicionar o nome do grupo familiar para cada crédito
     const creditsWithGroupName = await Promise.all(
@@ -54,7 +118,7 @@ export class CreditService {
    */
   async findByGroupFamilyId(groupFamilyId: string) {
     return this.creditModel
-      .find({ groupFamilyId })
+      .find({ groupFamilyId, archivedCredit: false })
       .sort({ createdAt: -1 })
       .lean();
   }

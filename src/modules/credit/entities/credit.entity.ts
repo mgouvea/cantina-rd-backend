@@ -14,6 +14,9 @@ export class Credit {
   @Prop({ required: true })
   groupFamilyId: string;
 
+  @Prop({ required: false, default: false })
+  archivedCredit: boolean;
+
   @Prop({ required: true, default: Date.now })
   createdAt: Date;
 

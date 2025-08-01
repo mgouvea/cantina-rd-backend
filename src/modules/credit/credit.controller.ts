@@ -20,8 +20,13 @@ export class CreditController {
   }
 
   @Get()
-  findAll() {
-    return this.creditService.findAll();
+  findAllActiveCredits() {
+    return this.creditService.findAllActiveCredits();
+  }
+
+  @Get('archive')
+  findAllArchiveCredits() {
+    return this.creditService.findAllArchiveCredits();
   }
 
   @Get(':id')

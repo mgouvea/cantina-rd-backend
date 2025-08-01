@@ -237,6 +237,7 @@ export class InvoicesService {
         const remainingCredit = availableCredit.amount - appliedCredit;
         await this.creditService.update(availableCredit._id.toString(), {
           amount: remainingCredit,
+          archivedCredit: remainingCredit === 0, // Arquivar o crédito se for totalmente consumido
           updatedAt: new Date(),
         });
 
@@ -643,7 +644,23 @@ export class InvoicesService {
   }
 
   async deleteInvoice(invoiceId: string) {
+    // Buscar todas as orders associadas a esta fatura
+    const orders = await this.orderModel.find({ invoiceId });
+
+    // Remover o invoiceId de cada order
+    if (orders && orders.length > 0) {
+      await this.orderModel.updateMany(
+        { invoiceId },
+        { $unset: { invoiceId: 1 } },
+      );
+    }
+
+    // Deletar a fatura
     await this.invoiceModel.findByIdAndDelete(invoiceId);
-    return { message: 'Invoice deleted successfully' };
+
+    return {
+      message: 'Invoice deleted successfully',
+      ordersUpdated: orders.length,
+    };
   }
 }
