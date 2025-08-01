@@ -116,7 +116,7 @@ export class CreditService {
    */
   async findByGroupFamilyId(groupFamilyId: string) {
     return this.creditModel
-      .find({ groupFamilyId })
+      .find({ groupFamilyId, archivedCredit: false })
       .sort({ createdAt: -1 })
       .lean();
   }

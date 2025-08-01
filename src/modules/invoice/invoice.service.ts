@@ -237,6 +237,7 @@ export class InvoicesService {
         const remainingCredit = availableCredit.amount - appliedCredit;
         await this.creditService.update(availableCredit._id.toString(), {
           amount: remainingCredit,
+          archivedCredit: remainingCredit === 0, // Arquivar o crédito se for totalmente consumido
           updatedAt: new Date(),
         });
 
