@@ -35,6 +35,11 @@ export class VisitorsInvoiceController {
     return this.visitorsInvoiceService.findAll();
   }
 
+  @Patch('reset-whatsapp')
+  resetWhatsappStatus() {
+    return this.visitorsInvoiceService.updateVisitorsInvoice();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.visitorsInvoiceService.findOne(id);

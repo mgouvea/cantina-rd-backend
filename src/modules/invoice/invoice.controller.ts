@@ -1,4 +1,12 @@
-import { Controller, Post, Body, Get, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  Delete,
+  Patch,
+} from '@nestjs/common';
 import { InvoicesService } from './invoice.service';
 import {
   CreateInvoiceDto,
@@ -47,5 +55,10 @@ export class InvoicesController {
   @Delete(':id')
   deleteInvoice(@Param('id') invoiceId: string) {
     return this.invoicesService.deleteInvoice(invoiceId);
+  }
+
+  @Patch('reset-whatsapp')
+  resetWhatsappStatus() {
+    return this.invoicesService.updateInvoices();
   }
 }

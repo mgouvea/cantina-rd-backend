@@ -643,6 +643,28 @@ export class InvoicesService {
     }
   }
 
+  async updateInvoices() {
+    try {
+      // Buscar todas as faturas com status diferente de PAID
+      const result = await this.invoiceModel.updateMany(
+        { status: { $ne: 'PAID' } },
+        { $set: { sentByWhatsapp: false } },
+      );
+
+      return {
+        success: true,
+        matchedCount: result.matchedCount,
+        modifiedCount: result.modifiedCount,
+        message: `${result.modifiedCount} faturas atualizadas com sucesso`,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+  }
+
   async deleteInvoice(invoiceId: string) {
     // Buscar todas as orders associadas a esta fatura
     const orders = await this.orderModel.find({ invoiceId });

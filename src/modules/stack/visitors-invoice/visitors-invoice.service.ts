@@ -405,4 +405,61 @@ export class VisitorsInvoiceService {
       throw new NotFoundException('Nenhuma fatura encontrada');
     }
   }
+
+  async updateVisitorsInvoice() {
+    try {
+      // Usar uma abordagem mais segura para atualizar as faturas
+      // 1. Primeiro, buscar IDs de todas as faturas não pagas
+      const unpaidInvoices = await this.invoiceModel
+        .find({ status: { $ne: 'PAID' } })
+        .select('_id')
+        .lean();
+
+      if (!unpaidInvoices || unpaidInvoices.length === 0) {
+        return {
+          success: true,
+          matchedCount: 0,
+          modifiedCount: 0,
+          message: 'Nenhuma fatura de visitante não paga encontrada',
+        };
+      }
+
+      // 2. Extrair os IDs
+      const invoiceIds = unpaidInvoices.map((invoice) => invoice._id);
+
+      // 3. Atualizar cada fatura individualmente para evitar problemas
+      let modifiedCount = 0;
+      const errors = [];
+
+      for (const id of invoiceIds) {
+        try {
+          const updateResult = await this.invoiceModel.findByIdAndUpdate(
+            id,
+            { sentByWhatsapp: false },
+            { new: true },
+          );
+
+          if (updateResult) {
+            modifiedCount++;
+          }
+        } catch (err) {
+          errors.push({ id, error: err.message });
+        }
+      }
+
+      return {
+        success: true,
+        matchedCount: invoiceIds.length,
+        modifiedCount,
+        errors: errors.length > 0 ? errors : undefined,
+        message: `${modifiedCount} faturas de visitantes atualizadas com sucesso`,
+      };
+    } catch (error) {
+      console.error('Erro ao atualizar faturas de visitantes:', error);
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+  }
 }
