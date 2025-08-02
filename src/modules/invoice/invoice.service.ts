@@ -437,12 +437,19 @@ export class InvoicesService {
     };
   }
 
-  async getFullInvoices(invoiceIds: string[]): Promise<FullInvoiceResponse[]> {
-    const invoicesRaw = await this.invoiceModel
-      .find({
-        _id: { $in: invoiceIds },
-      })
-      .lean();
+  async getFullInvoices(
+    invoiceIds: string[],
+    isArchivedInvoice: 'true' | 'false' | 'all',
+  ): Promise<FullInvoiceResponse[]> {
+    // Construir a query base
+    const query: any = { _id: { $in: invoiceIds } };
+
+    // Adicionar filtro de arquivo apenas se não for 'all'
+    if (isArchivedInvoice !== 'all') {
+      query.isArchivedInvoice = isArchivedInvoice === 'true';
+    }
+
+    const invoicesRaw = await this.invoiceModel.find(query).lean();
 
     if (invoicesRaw.length === 0) {
       throw new Error('Nenhuma fatura encontrada.');
@@ -550,7 +557,7 @@ export class InvoicesService {
   async sendInvoiceByWhatsapp(invoiceId: string) {
     try {
       // Buscar a fatura completa
-      const invoiceData = await this.getFullInvoices([invoiceId]);
+      const invoiceData = await this.getFullInvoices([invoiceId], 'all');
 
       if (!invoiceData || invoiceData.length === 0) {
         throw new Error('Fatura não encontrada');

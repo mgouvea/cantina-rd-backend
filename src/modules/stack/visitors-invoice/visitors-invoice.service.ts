@@ -309,13 +309,18 @@ export class VisitorsInvoiceService {
 
   async getFullInvoices(
     buyerIds: string[],
+    isArchivedInvoice: 'true' | 'false' | 'all',
   ): Promise<FullVisitorsInvoiceResponse[]> {
     try {
-      const invoicesRaw = await this.invoiceModel
-        .find({
-          buyerId: { $in: buyerIds },
-        })
-        .lean();
+      // Construir a query base
+      const query: any = { buyerId: { $in: buyerIds } };
+
+      // Adicionar filtro de arquivo apenas se não for 'all'
+      if (isArchivedInvoice !== 'all') {
+        query.isArchivedInvoice = isArchivedInvoice === 'true';
+      }
+
+      const invoicesRaw = await this.invoiceModel.find(query).lean();
 
       if (invoicesRaw.length === 0) {
         throw new Error('Nenhuma fatura encontrada.');

@@ -8,6 +8,7 @@ export class CreateInvoiceDto {
 
 export class FetchMultipleInvoicesDto {
   ids: string[];
+  isArchivedInvoice: 'true' | 'false' | 'all';
 }
 
 export interface ProductItem {

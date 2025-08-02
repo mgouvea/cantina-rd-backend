@@ -24,7 +24,10 @@ export class InvoicesController {
 
   @Post('full')
   getMultipleFullInvoices(@Body() body: FetchMultipleInvoicesDto) {
-    return this.invoicesService.getFullInvoices(body.ids);
+    return this.invoicesService.getFullInvoices(
+      body.ids,
+      body.isArchivedInvoice,
+    );
   }
 
   @Get()

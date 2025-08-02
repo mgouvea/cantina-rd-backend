@@ -27,7 +27,10 @@ export class VisitorsInvoiceController {
 
   @Post('full')
   getMultipleFullInvoices(@Body() body: FetchMultipleVisitorsInvoicesDto) {
-    return this.visitorsInvoiceService.getFullInvoices(body.ids);
+    return this.visitorsInvoiceService.getFullInvoices(
+      body.ids,
+      body.isArchivedInvoice,
+    );
   }
 
   @Get()
