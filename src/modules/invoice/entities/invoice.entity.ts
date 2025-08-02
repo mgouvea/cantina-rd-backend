@@ -61,6 +61,10 @@ export class Invoice {
   @IsEnum(['OPEN', 'PARTIALLY_PAID', 'PAID'])
   status: 'OPEN' | 'PARTIALLY_PAID' | 'PAID';
 
+  @Prop({ default: false })
+  @IsBoolean()
+  isArchivedInvoice: boolean;
+
   @Prop({ default: () => new Date() })
   @IsDate()
   createdAt: Date;

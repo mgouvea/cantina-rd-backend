@@ -8,6 +8,7 @@ export class CreateInvoiceDto {
 
 export class FetchMultipleInvoicesDto {
   ids: string[];
+  isArchivedInvoice: 'true' | 'false' | 'all';
 }
 
 export interface ProductItem {
@@ -123,3 +124,7 @@ export interface FullInvoiceResponse {
 }
 
 export class UpdateInvoiceDto extends PartialType(CreateInvoiceDto) {}
+
+export class UpdateInvoicesDto {
+  invoiceIds: string[];
+}

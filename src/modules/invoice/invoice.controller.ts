@@ -1,4 +1,12 @@
-import { Controller, Post, Body, Get, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  Delete,
+  Patch,
+} from '@nestjs/common';
 import { InvoicesService } from './invoice.service';
 import {
   CreateInvoiceDto,
@@ -16,7 +24,10 @@ export class InvoicesController {
 
   @Post('full')
   getMultipleFullInvoices(@Body() body: FetchMultipleInvoicesDto) {
-    return this.invoicesService.getFullInvoices(body.ids);
+    return this.invoicesService.getFullInvoices(
+      body.ids,
+      body.isArchivedInvoice,
+    );
   }
 
   @Get()
@@ -47,5 +58,10 @@ export class InvoicesController {
   @Delete(':id')
   deleteInvoice(@Param('id') invoiceId: string) {
     return this.invoicesService.deleteInvoice(invoiceId);
+  }
+
+  @Patch('reset-whatsapp')
+  resetWhatsappStatus() {
+    return this.invoicesService.updateInvoices();
   }
 }

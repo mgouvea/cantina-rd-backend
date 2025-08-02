@@ -49,9 +49,13 @@ export class PaymentsService {
 
     // Determinar o novo status da fatura
     const status = totalPaid >= invoice.totalAmount ? 'PAID' : 'PARTIALLY_PAID';
+    const isArchivedInvoice = status === 'PAID' ? true : false;
 
     // Atualizar o status da fatura
-    await this.invoiceModel.findByIdAndUpdate(invoice._id, { status });
+    await this.invoiceModel.findByIdAndUpdate(invoice._id, {
+      status,
+      isArchivedInvoice,
+    });
 
     // Retornar o pagamento criado junto com informações sobre o valor restante
     return {
