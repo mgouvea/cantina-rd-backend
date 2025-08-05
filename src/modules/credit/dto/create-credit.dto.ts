@@ -6,7 +6,7 @@ export class CreateCreditDto {
   groupFamilyId: string;
   archivedCredit: boolean;
   createdAt: Date;
-  updatedAt: Date;
+  updatedAt?: Date;
 }
 
 export class UpdateCreditDto extends PartialType(CreateCreditDto) {}

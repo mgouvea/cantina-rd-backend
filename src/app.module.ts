@@ -20,6 +20,7 @@ import { VisitorsPaymentModule } from './modules/stack/visitors-payment/visitors
 import { VisitorsInvoiceModule } from './modules/stack/visitors-invoice/visitors-invoice.module';
 import { OrdersVisitorsModule } from './modules/stack/orders-visitors/orders-visitors.module';
 import { EvolutionWhatsappModule } from './modules/evolution-whatsapp/evolution-whatsapp.module';
+import { ExpensesModule } from './modules/expenses/expenses.module';
 
 @Module({
   imports: [
@@ -84,6 +85,7 @@ import { EvolutionWhatsappModule } from './modules/evolution-whatsapp/evolution-
     VisitorsPaymentModule,
     VisitorsInvoiceModule,
     EvolutionWhatsappModule,
+    ExpensesModule,
   ],
   controllers: [],
   providers: [],

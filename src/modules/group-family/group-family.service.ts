@@ -115,8 +115,6 @@ export class GroupFamilyService {
       return null;
     }
 
-    console.log('groupFamily', groupFamily);
-
     // Array to store new members with their details
     const newMembers = [];
 
@@ -141,8 +139,6 @@ export class GroupFamilyService {
 
     // Combine existing members with new members
     const updatedMembers = groupFamily.members.concat(newMembers);
-
-    console.log('updatedMembers', updatedMembers);
 
     // Update the group family with the new members list
     return this.groupFamilyModel.findByIdAndUpdate(

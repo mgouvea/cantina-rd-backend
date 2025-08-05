@@ -20,8 +20,8 @@ export class Credit {
   @Prop({ required: true, default: Date.now })
   createdAt: Date;
 
-  @Prop()
-  updatedAt: Date;
+  @Prop({ required: false })
+  updatedAt?: Date;
 }
 
 export const CreditSchema = SchemaFactory.createForClass(Credit);
