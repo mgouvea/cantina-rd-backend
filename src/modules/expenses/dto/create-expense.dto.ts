@@ -4,8 +4,8 @@ export class CreateExpenseDto {
   userId: string;
   groupFamilyId: string;
   description: string;
-  expenseDate: Date;
-  referenceMonth: string;
+  expenseDate: Date | null;
+  referenceMonth: Date | null;
   expenseValue: number;
   expenseType: 'canteenCard' | 'canteenCredit' | 'paidByTreasurer' | 'refund';
   urlImage: string;
