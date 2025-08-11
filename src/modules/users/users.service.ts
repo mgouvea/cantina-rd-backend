@@ -91,9 +91,9 @@ export class UsersService {
     return user;
   }
 
-  async findGroupFamily(id: string) {
+  async findGroupFamily(userId: string) {
     const user = await this.userModel
-      .findById(id)
+      .findById(userId)
       .populate('groupFamily')
       .exec();
     return user;
