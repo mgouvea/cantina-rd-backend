@@ -141,7 +141,7 @@ export class ExpensesService {
 
     // Handle credit update if this is a refund expense and the value is being updated
     if (
-      expense.expenseType === 'refund' &&
+      expense.expenseType === ExpenseTypeEnum.CANTINE_CREDIT &&
       updateExpenseDto.expenseValue !== undefined &&
       updateExpenseDto.expenseValue !== expense.expenseValue
     ) {
