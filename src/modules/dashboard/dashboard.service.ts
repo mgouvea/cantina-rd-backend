@@ -167,10 +167,13 @@ export class DashboardService {
 
     // Calculate total expenses by month
     expensesCurrentYear.forEach((expense) => {
-      const expenseDate = expense.expenseDate
+      // Use referenceMonth if available, otherwise fall back to expenseDate or createdAt
+      const referenceDate = expense.referenceMonth
+        ? new Date(expense.referenceMonth)
+        : expense.expenseDate
         ? new Date(expense.expenseDate)
         : new Date(expense.createdAt);
-      const month = expenseDate.getMonth();
+      const month = referenceDate.getMonth();
 
       // Only include months from startMonth up to currentMonth
       if (month >= startMonth && month <= currentMonth) {
