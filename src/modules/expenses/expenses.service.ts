@@ -10,6 +10,7 @@ import { UsersService } from '../users/users.service';
 import { CreditService } from '../credit/credit.service';
 import { GroupFamilyService } from '../group-family/group-family.service';
 import { UpdateCreditDto } from '../credit/dto/create-credit.dto';
+import { ExpenseTypeEnum } from './dto/expenseEnum';
 
 @Injectable()
 export class ExpensesService {
@@ -46,7 +47,7 @@ export class ExpensesService {
       createExpenseDto.userId,
     );
 
-    if (createExpenseDto.expenseType === 'refund') {
+    if (createExpenseDto.expenseType === ExpenseTypeEnum.CANTINE_CREDIT) {
       await this.creditService.create({
         creditedAmount: createExpenseDto.expenseValue,
         amount: createExpenseDto.expenseValue,
@@ -140,7 +141,7 @@ export class ExpensesService {
 
     // Handle credit update if this is a refund expense and the value is being updated
     if (
-      expense.expenseType === 'refund' &&
+      expense.expenseType === ExpenseTypeEnum.CANTINE_CREDIT &&
       updateExpenseDto.expenseValue !== undefined &&
       updateExpenseDto.expenseValue !== expense.expenseValue
     ) {

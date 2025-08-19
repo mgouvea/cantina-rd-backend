@@ -5,6 +5,7 @@ import { InvoicesService as InvoiceService } from '../invoice/invoice.service';
 import { OrdersService } from '../orders/orders.service';
 import { PaymentsService } from '../payments/payments.service';
 import { OrdersVisitorsService } from '../stack/orders-visitors/orders-visitors.service';
+import { ExpensesService } from '../expenses/expenses.service';
 
 @Injectable()
 export class DashboardService {
@@ -14,6 +15,7 @@ export class DashboardService {
     private invoiceService: InvoiceService,
     private paymentsService: PaymentsService,
     private groupFamilyService: GroupFamilyService,
+    private expensesService: ExpensesService,
   ) {}
 
   async findTotalContents(date: DashDate) {
@@ -101,5 +103,112 @@ export class DashboardService {
 
   async findTopBuyers(date: DashDate) {
     return this.ordersService.findTopBuyers(date);
+  }
+
+  async findExpenses() {
+    // Get all expenses
+    const allExpenses = await this.expensesService.findAll();
+
+    // Get all payments (revenues)
+    const allPayments = await this.paymentsService.findAll();
+
+    // Get current year
+    const currentYear = new Date().getFullYear();
+
+    // Filter expenses and payments for current year only
+    const expensesCurrentYear = allExpenses.filter((expense) => {
+      const expenseDate = expense.expenseDate
+        ? new Date(expense.expenseDate)
+        : new Date(expense.createdAt);
+      return expenseDate.getFullYear() === currentYear;
+    });
+
+    const paymentsCurrentYear = allPayments.filter((payment) => {
+      const paymentDate = new Date(payment.paymentDate || payment.createdAt);
+      return paymentDate.getFullYear() === currentYear;
+    });
+
+    // Get all months from the start of the year until current month
+    const currentMonth = new Date().getMonth();
+    const monthNames = [
+      'Janeiro',
+      'Fevereiro',
+      'Março',
+      'Abril',
+      'Maio',
+      'Junho',
+      'Julho',
+      'Agosto',
+      'Setembro',
+      'Outubro',
+      'Novembro',
+      'Dezembro',
+    ];
+
+    // For year 2025, only include data from June onwards (month index 5)
+    let startMonth = 0;
+    if (currentYear === 2025) {
+      startMonth = 5; // June is index 5 (0-based)
+    }
+
+    // Initialize arrays for chart data
+    // Only include months from startMonth to currentMonth
+    const monthCount = currentMonth - startMonth + 1;
+    const payments = Array(monthCount).fill(0);
+    const expenses = Array(monthCount).fill(0);
+    const xLabels = [];
+    const months = [];
+
+    // Populate xLabels with month names from startMonth until current month
+    for (let i = startMonth; i <= currentMonth; i++) {
+      xLabels.push(monthNames[i]);
+      months.push(i);
+    }
+
+    // Calculate total expenses by month
+    expensesCurrentYear.forEach((expense) => {
+      // Use referenceMonth if available, otherwise fall back to expenseDate or createdAt
+      const referenceDate = expense.referenceMonth
+        ? new Date(expense.referenceMonth)
+        : expense.expenseDate
+        ? new Date(expense.expenseDate)
+        : new Date(expense.createdAt);
+      const month = referenceDate.getMonth();
+
+      // Only include months from startMonth up to currentMonth
+      if (month >= startMonth && month <= currentMonth) {
+        // Adjust the index to account for the startMonth offset
+        const adjustedIndex = month - startMonth;
+        expenses[adjustedIndex] += expense.expenseValue;
+      }
+    });
+
+    // Calculate total revenues by month
+    paymentsCurrentYear.forEach((payment) => {
+      const paymentDate = new Date(payment.paymentDate || payment.createdAt);
+      const month = paymentDate.getMonth();
+
+      // Only include months from startMonth up to currentMonth
+      if (month >= startMonth && month <= currentMonth) {
+        // Adjust the index to account for the startMonth offset
+        const adjustedIndex = month - startMonth;
+        payments[adjustedIndex] += payment.amountPaid;
+      }
+    });
+
+    // Round values to 2 decimal places
+    payments.forEach((value, index) => {
+      payments[index] = Math.round(value * 100) / 100;
+    });
+
+    expenses.forEach((value, index) => {
+      expenses[index] = Math.round(value * 100) / 100;
+    });
+
+    return {
+      payments,
+      expenses,
+      xLabels,
+    };
   }
 }

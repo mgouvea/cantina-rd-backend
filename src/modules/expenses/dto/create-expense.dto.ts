@@ -1,4 +1,5 @@
 import { PartialType } from '@nestjs/mapped-types';
+import { ExpenseTypeEnum } from './expenseEnum';
 
 export class CreateExpenseDto {
   userId: string;
@@ -7,7 +8,7 @@ export class CreateExpenseDto {
   expenseDate: Date | null;
   referenceMonth: Date | null;
   expenseValue: number;
-  expenseType: 'canteenCard' | 'canteenCredit' | 'paidByTreasurer' | 'refund';
+  expenseType: ExpenseTypeEnum;
   urlImage: string;
   publicIdImage: string;
   createdAt: Date;
