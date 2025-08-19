@@ -15,6 +15,11 @@ export class DashboardController {
     return this.dashboardService.findTotalContents(dateRange);
   }
 
+  @Get('payments-expenses')
+  findExpenses() {
+    return this.dashboardService.findExpenses();
+  }
+
   @Get('group-family-open-invoices')
   findOne(
     @Query('startDate') startDate: string,

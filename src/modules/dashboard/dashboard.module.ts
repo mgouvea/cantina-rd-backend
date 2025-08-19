@@ -6,6 +6,7 @@ import { Module } from '@nestjs/common';
 import { OrdersModule } from '../orders/orders.module';
 import { PaymentsModule } from '../payments/payments.module';
 import { OrdersVisitorsModule } from '../stack/orders-visitors/orders-visitors.module';
+import { ExpensesModule } from '../expenses/expenses.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { OrdersVisitorsModule } from '../stack/orders-visitors/orders-visitors.m
     InvoiceModule,
     PaymentsModule,
     GroupFamilyModule,
+    ExpensesModule,
   ],
   controllers: [DashboardController],
   providers: [DashboardService],
