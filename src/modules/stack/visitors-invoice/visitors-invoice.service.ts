@@ -530,7 +530,7 @@ export class VisitorsInvoiceService {
         invoiceStartDate: invoice.startDate,
         invoiceEndDate: invoice.endDate,
         invoiceTotalAmount: invoice.totalAmount,
-        invoiceId: invoice,
+        invoiceId: invoice.buyerId,
         invoicePaidAmount: invoice.paidAmount,
         invoiceRemaining: invoice.remaining,
         invoiceAppliedCredit: 0, // Não há crédito aplicado para visitantes
@@ -543,7 +543,7 @@ export class VisitorsInvoiceService {
         invoice.startDate,
         invoice.endDate,
         invoice.totalAmount,
-        invoice._id,
+        invoice.buyerId,
         invoice.paidAmount,
         invoice.remaining,
         0, // Não há crédito aplicado para visitantes
