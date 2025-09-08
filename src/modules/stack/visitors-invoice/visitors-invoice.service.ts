@@ -26,6 +26,7 @@ import {
   VisitorsPayment,
   VisitorsPaymentDocument,
 } from '../visitors-payment/entities/visitors-payment.entity';
+import { EvolutionWhatsappService } from '../../evolution-whatsapp/evolution-whatsapp.service';
 
 @Injectable()
 export class VisitorsInvoiceService {
@@ -486,6 +487,84 @@ export class VisitorsInvoiceService {
       return {
         success: false,
         error: error.message,
+      };
+    }
+  }
+
+  async sendInvoiceByWhatsapp(buyerId: string) {
+    try {
+      // Buscar a fatura completa
+      const invoiceData = await this.getFullInvoices([buyerId], 'all');
+      console.log('invoiceData', invoiceData);
+
+      if (!invoiceData || invoiceData.length === 0) {
+        throw new Error('Fatura não encontrada');
+      }
+
+      const invoice = invoiceData[0];
+
+      // Buscar os dados do visitante
+      const visitorsService = this.moduleRef.get(VisitorsService, {
+        strict: false,
+      });
+
+      const visitor = await visitorsService.findVisitorNameAndPhoneById(
+        invoice.buyerId,
+      );
+
+      if (!visitor) {
+        throw new Error('Visitante não encontrado');
+      }
+
+      if (!visitor.telephone) {
+        throw new Error('Visitante não possui telefone cadastrado');
+      }
+
+      // Chamar o serviço de WhatsApp para enviar a mensagem
+      const whatsappService = this.moduleRef.get(EvolutionWhatsappService, {
+        strict: false,
+      });
+      console.log('envio', {
+        visitorName: visitor.name,
+        visitorPhone: visitor.telephone,
+        invoiceStartDate: invoice.startDate,
+        invoiceEndDate: invoice.endDate,
+        invoiceTotalAmount: invoice.totalAmount,
+        invoiceId: invoice,
+        invoicePaidAmount: invoice.paidAmount,
+        invoiceRemaining: invoice.remaining,
+        invoiceAppliedCredit: 0, // Não há crédito aplicado para visitantes
+        invoiceOriginalAmount: invoice.totalAmount, // Valor original é o mesmo do total
+        invoiceDebitAmount: 0, // Não há débitos anteriores para visitantes
+      });
+      await whatsappService.sendInvoiceConfirmation(
+        visitor.name,
+        visitor.telephone,
+        invoice.startDate,
+        invoice.endDate,
+        invoice.totalAmount,
+        invoice._id,
+        invoice.paidAmount,
+        invoice.remaining,
+        0, // Não há crédito aplicado para visitantes
+        invoice.totalAmount, // Valor original é o mesmo do total
+        0, // Não há débitos anteriores para visitantes
+      );
+
+      // Atualizar a fatura para marcar como enviada por WhatsApp
+      await this.invoiceModel.findByIdAndUpdate(invoice._id, {
+        sentByWhatsapp: true,
+      });
+
+      return {
+        success: true,
+        message: `Fatura enviada com sucesso para ${visitor.name} (${visitor.telephone})`,
+      };
+    } catch (error) {
+      console.error('Erro ao enviar fatura por WhatsApp:', error);
+      return {
+        success: false,
+        message: `Erro ao enviar fatura: ${error.message}`,
       };
     }
   }

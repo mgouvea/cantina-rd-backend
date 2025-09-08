@@ -236,15 +236,15 @@ export class EvolutionWhatsappService {
     if (originalAmount !== null && (appliedCredit > 0 || debitAmount > 0)) {
       if (paidAmount > 0) {
         paymentInfo = `💵 *Valor original:* R$ ${originalAmount - debitAmount}
-    ⚠️ *Débitos anteriores:* R$ ${debitAmount}
-    🔄 *Crédito aplicado:* R$ ${appliedCredit}
+    ${debitAmount > 0 && `⚠️ *Débitos anteriores:* R$ ${debitAmount}`}
+    ${appliedCredit > 0 && `🔄 *Crédito aplicado:* R$ ${appliedCredit}`}
     💵 *Valor após crédito:* R$ ${totalAmount}
     ✅ *Já pago:* R$ ${paidAmount}
     💰 *Valor a pagar:* R$ ${remainingAmount}`;
       } else {
         paymentInfo = `💵 *Valor original:* R$ ${originalAmount - debitAmount}
-    ⚠️ *Débitos anteriores:* R$ ${debitAmount}
-    🔄 *Crédito aplicado:* R$ ${appliedCredit}
+    ${debitAmount > 0 && `⚠️ *Débitos anteriores:* R$ ${debitAmount}`}
+    ${appliedCredit > 0 && `🔄 *Crédito aplicado:* R$ ${appliedCredit}`}
     💰 *Valor a pagar:* R$ ${remainingAmount}`;
       }
     } else if (paidAmount > 0) {
