@@ -269,7 +269,7 @@ export class EvolutionWhatsappService {
     📌 Envie o comprovante para processarmos o pagamento.
     🔗 *Veja o detalhamento da fatura no link abaixo:*
     https://admin.cantina-rd.shop/fatura-cliente/${
-      isVisitor ? `${isVisitor}/visitante` : invoiceId
+      isVisitor ? `${invoiceId}/visitante` : invoiceId
     }
     
     Grato! 🙌`;
