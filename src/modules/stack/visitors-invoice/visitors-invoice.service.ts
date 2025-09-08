@@ -524,19 +524,7 @@ export class VisitorsInvoiceService {
       const whatsappService = this.moduleRef.get(EvolutionWhatsappService, {
         strict: false,
       });
-      console.log('envio', {
-        visitorName: visitor.name,
-        visitorPhone: visitor.telephone,
-        invoiceStartDate: invoice.startDate,
-        invoiceEndDate: invoice.endDate,
-        invoiceTotalAmount: invoice.totalAmount,
-        invoiceId: invoice.buyerId,
-        invoicePaidAmount: invoice.paidAmount,
-        invoiceRemaining: invoice.remaining,
-        invoiceAppliedCredit: 0, // Não há crédito aplicado para visitantes
-        invoiceOriginalAmount: invoice.totalAmount, // Valor original é o mesmo do total
-        invoiceDebitAmount: 0, // Não há débitos anteriores para visitantes
-      });
+      const isVisitor = true;
       await whatsappService.sendInvoiceConfirmation(
         visitor.name,
         visitor.telephone,
@@ -549,6 +537,7 @@ export class VisitorsInvoiceService {
         0, // Não há crédito aplicado para visitantes
         invoice.totalAmount, // Valor original é o mesmo do total
         0, // Não há débitos anteriores para visitantes
+        isVisitor,
       );
 
       // Atualizar a fatura para marcar como enviada por WhatsApp

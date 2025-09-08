@@ -178,6 +178,7 @@ export class EvolutionWhatsappService {
     appliedCredit = 0,
     originalAmount = null,
     debitAmount = 0,
+    isVisitor = false,
   ) {
     try {
       const message = this.generateInvoiceMessage(
@@ -191,6 +192,7 @@ export class EvolutionWhatsappService {
         appliedCredit,
         originalAmount,
         debitAmount,
+        isVisitor,
       );
 
       await this.sendTextMessage(phoneNumber, message);
@@ -227,6 +229,7 @@ export class EvolutionWhatsappService {
     appliedCredit = 0,
     originalAmount = null,
     debitAmount = 0,
+    isVisitor = false,
   ): string {
     const remainingAmount =
       remaining !== null ? remaining : totalAmount - paidAmount;
@@ -265,7 +268,9 @@ export class EvolutionWhatsappService {
     💳 *PIX:* ${this.pixKey}
     📌 Envie o comprovante para processarmos o pagamento.
     🔗 *Veja o detalhamento da fatura no link abaixo:*
-    https://admin.cantina-rd.shop/fatura-cliente/${invoiceId}
+    https://admin.cantina-rd.shop/fatura-cliente/${
+      isVisitor ? `${isVisitor}/visitante` : invoiceId
+    }
     
     Grato! 🙌`;
   }
