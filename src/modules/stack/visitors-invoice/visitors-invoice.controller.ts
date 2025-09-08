@@ -48,6 +48,11 @@ export class VisitorsInvoiceController {
     return this.visitorsInvoiceService.findOne(id);
   }
 
+  @Post(':id/send-whatsapp')
+  sendInvoiceByWhatsapp(@Param('id') buyerId: string) {
+    return this.visitorsInvoiceService.sendInvoiceByWhatsapp(buyerId);
+  }
+
   @Patch(':id')
   update(
     @Param('id') id: string,

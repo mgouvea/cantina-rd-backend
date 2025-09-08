@@ -17,6 +17,7 @@ import {
   VisitorsPayment,
   VisitorsPaymentSchema,
 } from '../visitors-payment/entities/visitors-payment.entity';
+import { EvolutionWhatsappModule } from '../../evolution-whatsapp/evolution-whatsapp.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import {
     OrdersVisitorsModule,
     VisitorsModule,
     VisitorsPaymentModule,
+    EvolutionWhatsappModule,
   ],
   controllers: [VisitorsInvoiceController],
   providers: [VisitorsInvoiceService],
