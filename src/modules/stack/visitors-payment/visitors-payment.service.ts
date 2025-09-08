@@ -46,9 +46,11 @@ export class VisitorsPaymentService {
     // Atualizar o valor pago e o status da fatura
     const newPaidAmount = invoice.paidAmount + amountPaid;
     let newStatus = invoice.status;
+    let newIsArchivedInvoice = invoice.isArchivedInvoice;
 
     if (newPaidAmount >= invoice.totalAmount) {
       newStatus = 'PAID';
+      newIsArchivedInvoice = true;
     } else if (newPaidAmount > 0) {
       newStatus = 'PARTIALLY_PAID';
     }
@@ -56,6 +58,7 @@ export class VisitorsPaymentService {
     await this.invoiceModel.findByIdAndUpdate(invoiceId, {
       paidAmount: newPaidAmount,
       status: newStatus,
+      isArchivedInvoice: newIsArchivedInvoice,
     });
 
     return payment;
