@@ -38,3 +38,10 @@ export const sanitizedName = (name: string): string =>
     lower: true,
     strict: true,
   });
+
+export const formatCurrency = (amount: number): string => {
+  return amount.toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  });
+};

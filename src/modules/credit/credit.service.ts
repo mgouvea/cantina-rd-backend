@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateCreditDto, UpdateCreditDto } from './dto/create-credit.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -17,18 +17,29 @@ export class CreditService {
   ) {}
 
   async create(createCreditDto: CreateCreditDto) {
-    // Check if there's an existing credit with amount > 0 for this group family
+    // Normalize and validate incoming amount as number
+    const incomingAmount = Number(createCreditDto.amount);
+    if (Number.isNaN(incomingAmount)) {
+      throw new BadRequestException('Invalid amount');
+    }
+
+    // Find the most recent active (non-archived) credit for this group family
+    // We don't filter by amount here because legacy records may have amount stored as string
     const existingCredit = await this.creditModel
       .findOne({
         groupFamilyId: createCreditDto.groupFamilyId,
-        amount: { $gt: 0 },
         archivedCredit: false,
       })
+      .sort({ createdAt: -1 })
       .exec();
 
-    if (existingCredit) {
-      // If there's an existing credit with amount > 0, archive it and create a new one with combined amount
-      const combinedAmount = existingCredit.amount + createCreditDto.amount;
+    const existingAmount = existingCredit ? Number(existingCredit.amount) : 0;
+
+    if (existingCredit && existingAmount > 0) {
+      // Combine with existing active credit
+      const combinedAmount =
+        Math.round((existingAmount + incomingAmount) * 100) / 100;
+
       // Archive the existing credit
       await this.creditModel
         .findByIdAndUpdate(existingCredit._id, {
@@ -38,20 +49,24 @@ export class CreditService {
         })
         .exec();
 
-      // Create a new credit with combined amount
+      // Create a new credit with the combined amount
       const newCredit = new this.creditModel({
-        ...createCreditDto,
+        groupFamilyId: createCreditDto.groupFamilyId,
         amount: combinedAmount,
         creditedAmount: combinedAmount,
+        archivedCredit: false,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
 
       return newCredit.save();
     } else {
-      // If no existing credit or existing credit has amount = 0, create a new one
+      // Create a fresh credit using the normalized incoming amount
       const credit = new this.creditModel({
-        ...createCreditDto,
+        groupFamilyId: createCreditDto.groupFamilyId,
+        amount: Math.round(incomingAmount * 100) / 100,
+        creditedAmount: Math.round(incomingAmount * 100) / 100,
+        archivedCredit: false,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
