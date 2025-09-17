@@ -160,28 +160,86 @@ export class InvoicesService {
         .findById(openInvoice._id)
         .lean();
 
-      // Calcular o valor restante (total - pago)
-      const remaining = updatedInvoice.totalAmount - updatedInvoice.paidAmount;
+      // Calcular o valor restante (total - pago) antes de aplicar novo crédito
+      let remaining = updatedInvoice.totalAmount - updatedInvoice.paidAmount;
+
+      // Aplicar crédito adicional disponível (se houver) para reduzir a fatura atualizada
+      if (remaining > 0) {
+        const familyCredits = await this.creditService.findByGroupFamilyId(
+          groupFamilyId,
+        );
+        const availableCredit = familyCredits?.find(
+          (credit) => Number(credit.amount) > 0,
+        );
+
+        if (availableCredit) {
+          const availableAmountNum = Number(availableCredit.amount);
+          const creditToApply = Math.min(availableAmountNum, remaining);
+          const roundedCreditToApply = Math.round(creditToApply * 100) / 100;
+
+          // Atualizar o crédito disponível
+          const remainingCreditRaw = availableAmountNum - roundedCreditToApply;
+          const remainingCredit = Math.round(remainingCreditRaw * 100) / 100;
+          await this.creditService.update(availableCredit._id.toString(), {
+            amount: remainingCredit,
+            archivedCredit: remainingCredit === 0,
+            updatedAt: new Date(),
+          });
+
+          // Atualizar a fatura: reduzir totalAmount e incrementar appliedCredit
+          // Se originalAmount não existir, definir antes da redução
+          const newTotalAmountRaw =
+            updatedInvoice.totalAmount - roundedCreditToApply;
+          const newTotalAmount = Math.round(newTotalAmountRaw * 100) / 100;
+          const incAppliedCredit = roundedCreditToApply;
+
+          await this.invoiceModel.findByIdAndUpdate(openInvoice._id, {
+            $set: {
+              totalAmount: newTotalAmount,
+              originalAmount:
+                typeof updatedInvoice.originalAmount === 'number' &&
+                !Number.isNaN(updatedInvoice.originalAmount)
+                  ? updatedInvoice.originalAmount
+                  : updatedInvoice.totalAmount, // antes de aplicar o novo crédito
+              creditId: availableCredit._id,
+              status: newTotalAmount === 0 ? 'PAID' : updatedInvoice.status,
+              sentByWhatsapp: false,
+            },
+            $inc: { appliedCredit: incAppliedCredit },
+          });
+
+          remaining = newTotalAmount - updatedInvoice.paidAmount;
+        }
+      }
+
+      // Buscar novamente a fatura para refletir as atualizações de crédito (se houver)
+      const refreshedInvoice = await this.invoiceModel
+        .findById(openInvoice._id)
+        .lean();
+
+      const finalRemaining =
+        (refreshedInvoice.totalAmount || 0) -
+        (refreshedInvoice.paidAmount || 0);
 
       return {
         updated: true,
         invoice: {
-          _id: updatedInvoice._id.toString(),
-          groupFamilyId: updatedInvoice.groupFamilyId,
-          buyerIds: updatedInvoice.buyerIds,
-          startDate: updatedInvoice.startDate,
-          endDate: updatedInvoice.endDate,
-          sentByWhatsapp: updatedInvoice.sentByWhatsapp,
-          totalAmount: updatedInvoice.totalAmount,
-          paidAmount: updatedInvoice.paidAmount,
-          status: updatedInvoice.status,
-          createdAt: updatedInvoice.createdAt,
+          _id: refreshedInvoice._id.toString(),
+          groupFamilyId: refreshedInvoice.groupFamilyId,
+          buyerIds: refreshedInvoice.buyerIds,
+          startDate: refreshedInvoice.startDate,
+          endDate: refreshedInvoice.endDate,
+          sentByWhatsapp: refreshedInvoice.sentByWhatsapp,
+          totalAmount: refreshedInvoice.totalAmount,
+          paidAmount: refreshedInvoice.paidAmount,
+          status: refreshedInvoice.status,
+          createdAt: refreshedInvoice.createdAt,
           orders: [],
           payments: [],
           consumoPorPessoa,
           consumidoresNomes: {},
           ownerName: '',
-          remaining: remaining,
+          remaining: finalRemaining,
         },
         consumoPorPessoa,
       };
@@ -227,14 +285,16 @@ export class InvoicesService {
       const availableCredit = familyCredits.find((credit) => credit.amount > 0);
 
       if (availableCredit) {
-        // Calcular quanto do crédito será aplicado
-        appliedCredit = Math.min(availableCredit.amount, totalAmount);
+        // Calcular quanto do crédito será aplicado sobre o total + débitos
+        const baseAmount = totalAmount + debitAmount;
+        appliedCredit = Math.min(availableCredit.amount, baseAmount);
 
         // Atualizar o valor total da fatura após aplicação do crédito
-        finalTotalAmount = totalAmount - appliedCredit;
+        finalTotalAmount = Math.round((baseAmount - appliedCredit) * 100) / 100;
 
         // Atualizar o valor do crédito restante
-        const remainingCredit = availableCredit.amount - appliedCredit;
+        const remainingCredit =
+          Math.round((availableCredit.amount - appliedCredit) * 100) / 100;
         await this.creditService.update(availableCredit._id.toString(), {
           amount: remainingCredit,
           archivedCredit: remainingCredit === 0, // Arquivar o crédito se for totalmente consumido

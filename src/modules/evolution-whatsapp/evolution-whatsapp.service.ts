@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
 import { ProductItem } from '../orders/dto/create-order.dto';
 import {
-  formatDateShort,
+  formatCurrency,
   formatDateTime,
   formatName,
 } from 'src/shared/utils/helpers';
@@ -236,38 +236,39 @@ export class EvolutionWhatsappService {
 
     let paymentInfo = '';
 
-    if (originalAmount !== null && (appliedCredit > 0 || debitAmount > 0)) {
-      if (paidAmount > 0) {
-        paymentInfo = `💵 *Valor original:* R$ ${originalAmount - debitAmount}
-    ${debitAmount > 0 && `⚠️ *Débitos anteriores:* R$ ${debitAmount}`}
-    ${appliedCredit > 0 && `🔄 *Crédito aplicado:* R$ ${appliedCredit}`}
-    💵 *Valor após crédito:* R$ ${totalAmount}
-    ✅ *Já pago:* R$ ${paidAmount}
-    💰 *Valor a pagar:* R$ ${remainingAmount}`;
-      } else {
-        paymentInfo = `💵 *Valor original:* R$ ${originalAmount - debitAmount}
-    ${debitAmount > 0 && `⚠️ *Débitos anteriores:* R$ ${debitAmount}`}
-    ${appliedCredit > 0 && `🔄 *Crédito aplicado:* R$ ${appliedCredit}`}
-    💰 *Valor a pagar:* R$ ${remainingAmount}`;
-      }
-    } else if (paidAmount > 0) {
-      paymentInfo = `💵 *Valor total:* R$ ${totalAmount}
-    ✅ *Já pago:* R$ ${paidAmount}
-    💰 *Valor a pagar:* R$ ${remainingAmount}`;
-    } else {
-      paymentInfo = `💰 *Valor a pagar:* R$ ${remainingAmount}`;
-    }
+    // if (originalAmount !== null && (appliedCredit > 0 || debitAmount > 0)) {
+    //   if (paidAmount > 0) {
+    //     paymentInfo = `💵 *Valor original:* R$ ${originalAmount - debitAmount}
+    // ${debitAmount > 0 && `⚠️ *Débitos anteriores:* R$ ${debitAmount}`}
+    // ${appliedCredit > 0 && `🔄 *Crédito aplicado:* R$ ${appliedCredit}`}
+    // 💵 *Valor após crédito:* R$ ${totalAmount}
+    // ✅ *Já pago:* R$ ${paidAmount}
+    // 💰 *Valor a pagar:* R$ ${remainingAmount}`;
+    //   } else {
+    //     paymentInfo = `💵 *Valor original:* R$ ${originalAmount - debitAmount}
+    // ${debitAmount > 0 && `⚠️ *Débitos anteriores:* R$ ${debitAmount}`}
+    // ${appliedCredit > 0 && `🔄 *Crédito aplicado:* R$ ${appliedCredit}`}
+    // 💰 *Valor a pagar:* R$ ${remainingAmount}`;
+    //   }
+    // } else if (paidAmount > 0) {
+    //   paymentInfo = `💵 *Valor total:* R$ ${totalAmount}
+    // ✅ *Já pago:* R$ ${paidAmount}
+    // 💰 *Valor a pagar:* R$ ${remainingAmount}`;
+    // } else {
+    // }
+    paymentInfo = `💰 *Valor a pagar:* ${formatCurrency(remainingAmount)}`;
+
+    // 🗓️ *Período:* ${formatDateShort(startDate)} a ${formatDateShort(endDate)}
 
     return `📄 *Fatura - Cantina RD*
       
     *Olá, ${formatName(groupFamilyOwnerName)}! Sua fatura foi gerada:*
     
     ${paymentInfo}
-    
-    🗓️ *Período:* ${formatDateShort(startDate)} a ${formatDateShort(endDate)}
-    💳 *PIX:* ${this.pixKey}
-    📌 Envie o comprovante para processarmos o pagamento.
-    🔗 *Veja o detalhamento da fatura no link abaixo:*
+
+    🔑 *PIX:* ${this.pixKey}
+    📑 Envie o comprovante para processarmos o pagamento.
+    🔗 *Ver detalhamento da fatura :*
     https://admin.cantina-rd.shop/fatura-cliente/${
       isVisitor ? `${invoiceId}/visitante` : invoiceId
     }
