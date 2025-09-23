@@ -5,12 +5,14 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Payment, PaymentSchema } from './entities/payment.entity';
 import { InvoiceModule } from '../invoice/invoice.module';
 import { GroupFamilyModule } from '../group-family/group-family.module';
+import { CreditModule } from '../credit/credit.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Payment.name, schema: PaymentSchema }]),
     forwardRef(() => InvoiceModule),
     forwardRef(() => GroupFamilyModule),
+    CreditModule,
   ],
   controllers: [PaymentsController],
   providers: [PaymentsService],

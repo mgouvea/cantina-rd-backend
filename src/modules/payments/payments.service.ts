@@ -11,6 +11,8 @@ import { CreatePaymentDto, UpdatePaymentDto } from './dto/create-payment.dto';
 import { Invoice, InvoiceDocument } from '../invoice/entities/invoice.entity';
 import { GroupFamilyService } from '../group-family/group-family.service';
 import { DashDate } from 'src/shared/types/dashDate.type';
+import { CreditService } from '../credit/credit.service';
+import { CreateCreditDto } from '../credit/dto/create-credit.dto';
 
 @Injectable()
 export class PaymentsService {
@@ -23,6 +25,9 @@ export class PaymentsService {
 
     @Inject(forwardRef(() => GroupFamilyService))
     private groupFamilyService: GroupFamilyService,
+
+    // Service to handle credit creation when there is overpayment
+    private readonly creditService: CreditService,
   ) {}
 
   async create(createPaymentDto: CreatePaymentDto) {
@@ -57,6 +62,30 @@ export class PaymentsService {
       isArchivedInvoice,
     });
 
+    // Caso seja um pagamento com crédito (isCredit === true), calcular a diferença (valor pago a mais)
+    // A diferença é amountPaid - baseAmount. Se for positiva, vira crédito para o grupo familiar da fatura.
+    let createdCreditAmount = 0;
+    if (
+      createPaymentDto.isCredit &&
+      typeof createPaymentDto.baseAmount === 'number'
+    ) {
+      const overpaid = Math.max(
+        0,
+        (createPaymentDto.amountPaid || 0) - (createPaymentDto.baseAmount || 0),
+      );
+      if (overpaid > 0) {
+        const creditPayload: CreateCreditDto = {
+          groupFamilyId: String(invoice.groupFamilyId),
+          amount: overpaid,
+          creditedAmount: overpaid,
+          archivedCredit: false,
+          createdAt: new Date(),
+        };
+        await this.creditService.create(creditPayload);
+        createdCreditAmount = overpaid;
+      }
+    }
+
     // Retornar o pagamento criado junto com informações sobre o valor restante
     return {
       ...createdPayment.toObject(),
@@ -64,6 +93,7 @@ export class PaymentsService {
       totalPaid,
       totalAmount: invoice.totalAmount,
       remainingAmount,
+      createdCreditAmount,
     };
   }
 
